@@ -1,0 +1,19 @@
+{
+  "run": "node",
+  "args": [
+    "--use-strict",
+    "anac-agent-jok.js",
+    "-level",
+    "2"
+  ],
+  "watcher": "http://embodied-ai.sl.cloud9.ibm.com:7777",
+  "id": "anac-agent-jok1",
+  "description": "https://us-south.git.cloud.ibm.com/anac-negotiation/anac-agent-jok,
+  "tags": [
+    "anac",
+    "agent"
+  ],
+  "host": "embodied-ai.sl.cloud9.ibm.com",
+  "port": "14007",
+  "log": "agent001.log"
+}
