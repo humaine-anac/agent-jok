@@ -8,7 +8,7 @@
   ],
   "watcher": "http://embodied-ai.sl.cloud9.ibm.com:7777",
   "id": "anac-agent-jok2",
-  "description": "https://us-south.git.cloud.ibm.com/anac-negotiation/anac-agent-jok,
+  "description": "https://us-south.git.cloud.ibm.com/anac-negotiation/anac-agent-jok",
   "tags": [
     "anac",
     "agent"
