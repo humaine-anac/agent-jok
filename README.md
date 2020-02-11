@@ -8,11 +8,16 @@ How to install the HUMAINE negotiation agent
 git clone git@us-south.git.cloud.ibm.com:anac-negotiation/anac-agent-jok.git
 cd anac-agent-jok
 cp appSettings.json.template1 appSettings.json
-cp assistantParams.json.template1 assistantParams.json
 cp cog.json.template1 cog.json
 cp package.json.template1 package.json
+cp assistantParams.json.template assistantParams.json
 ```
-For this particular sample agent, you need to create a Watson Assistant instance and an associated skill. The json for the skill can be found in the file `skill-HUMAINE-agent.json`. Upload this json file to create your skill. Then, edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill you have created.
+
+For this particular sample agent, you need a Watson Assistant instance and an associated skill.
+
+If the skill does not already exist, the json for it can be found in the file `skill-HUMAINE-agent.json`. Upload this json file to create your skill.
+
+Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill.
 
 Edit the `watcher` and `host` lines in the file cog.json to reflect the name of the host on which your code is installed.
 
