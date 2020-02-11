@@ -7,7 +7,7 @@ How to install the HUMAINE negotiation agent
 ```sh
 git clone git@us-south.git.cloud.ibm.com:anac-negotiation/anac-agent-jok.git
 cd anac-agent-jok
-cp assistantParams.json.template assistantParams.json
+cp assistantParams.json.template1 assistantParams.json
 cp cog.json.template1 cog.json
 cp package.json.template1 package.json
 ```
