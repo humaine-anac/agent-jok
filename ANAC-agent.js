@@ -69,7 +69,8 @@ app.configure('development', () => {
 });
 
 const getDataFromServiceType = promisify(dc().getDataFromServiceType);
-const postDataToServiceType = promisify(dc().postDataToServiceType);
+//const postDataToServiceType = promisify(dc().postDataToServiceType);
+const postDataToServiceType = promisify(postDataToServiceTypeNew);
 
 const wrapper = promise => (
   promise
@@ -618,4 +619,35 @@ function quantize(quantity, decimals) {
   let multiplicator = Math.pow(10, decimals);
   let q = parseFloat((quantity * multiplicator).toFixed(11));
   return Math.round(q) / multiplicator;
+}
+
+let serviceMap =
+{
+  "ANAC-environment-orchestrator": {
+    "protocol": "http",
+    "host": "embodied-ai.sl.cloud9.ibm.com",
+    "port": 14010
+  }
+}
+
+let request = require('request');
+function postDataToServiceTypeNew(json, serviceType, path) {
+//  let serviceMap = appSettings.serviceMap;
+  if(serviceMap[serviceType]) {
+    let options = serviceMap[serviceType];
+    options.path = path;
+    let url = options2URL(options);
+    request.post({url, body: json, json: true}, (error, response, body) => {
+      if(!error) return Promise.resolve(body);
+      else return Promise.reject(error);
+    });
+  }
+}
+
+function options2URL(options) {
+  let protocol = options.protocol || 'http';
+  let url = protocol + '://' + options.host;
+  if (options.port) url += ':' + options.port;
+  if (options.path) url  += options.path;
+  return url;
 }
