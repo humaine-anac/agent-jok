@@ -3,7 +3,6 @@ if (!envLoaded) console.log('warning:', __filename, '.env cannot be found');
 
 const appSettings = require('./appSettings.json');
 const http = require('http');
-const { promisify } = require('util');
 const express = require('express');
 const path = require('path');
 const { logExpression, setLogLevel } = require('@cel/logger');
@@ -66,14 +65,6 @@ app.configure(() => {
 app.configure('development', () => {
   app.use(express.errorHandler());
 });
-
-const postDataToServiceType = promisify(postDataToServiceTypeNew);
-
-const wrapper = promise => (
-  promise
-    .then(data => ({ data, error: null }))
-    .catch(error => ({ error, data: null }))
-);
 
 const getSafe = (p, o, d) =>
   p.reduce((xs, x) => (xs && xs[x] != null && xs[x] != undefined) ? xs[x] : d, o);
@@ -288,22 +279,10 @@ function mayIRespond(receivedOffer) {
 }
 
 // Send specified message to thee /receiveMessage route of the environment orchestrator
-async function sendMessage(message) {
+function sendMessage(message) {
   logExpression("Sending message to environment orchestrator: ", 2);
   logExpression(message, 2);
-  try {
-    const { error, data } = await wrapper(
-      postDataToServiceType(message, 'ANAC-environment-orchestrator', '/relayMessage')
-    );
-    if(!error && data) {
-      return data;
-    }
-  }
-  catch(error) {
-    logExpression("Got error!", 1);
-    logExpression(error, 1);
-    return Promise.reject(error);
-  }
+  return postDataToServiceType(message, 'anac-environment-orchestrator', '/relayMessage');
 }
 
 // From the intents and entities obtained from Watson Assistant, extract a structured representation
@@ -616,25 +595,28 @@ function quantize(quantity, decimals) {
   return Math.round(q) / multiplicator;
 }
 
-let serviceMap =
-{
-  "ANAC-environment-orchestrator": {
-    "protocol": "http",
-    "host": "embodied-ai.sl.cloud9.ibm.com",
-    "port": 14010
-  }
-}
-
 let request = require('request');
-function postDataToServiceTypeNew(json, serviceType, path) {
-//  let serviceMap = appSettings.serviceMap;
+
+function postDataToServiceType(json, serviceType, path) {
+  let serviceMap = appSettings.serviceMap;
   if(serviceMap[serviceType]) {
     let options = serviceMap[serviceType];
     options.path = path;
     let url = options2URL(options);
-    request.post({url, body: json, json: true}, (error, response, body) => {
-      if(!error) return Promise.resolve(body);
-      else return Promise.reject(error);
+    let rOptions = {
+      method: 'POST',
+      uri: url,
+      body: json,
+      json: true
+    };
+    return request(rOptions)
+    .then(response => {
+      return response;
+    })
+    .catch(error => {
+      logExpression("Error: ", 1);
+      logExpression(error, 1);
+      return null;
     });
   }
 }
@@ -646,3 +628,16 @@ function options2URL(options) {
   if (options.path) url  += options.path;
   return url;
 }
+
+//function postDataToServiceTypeNew(json, serviceType, path) {
+////  let serviceMap = appSettings.serviceMap;
+//  if(serviceMap[serviceType]) {
+//    let options = serviceMap[serviceType];
+//    options.path = path;
+//    let url = options2URL(options);
+//    request.post({url, body: json, json: true}, (error, response, body) => {
+//      if(!error) return Promise.resolve(body);
+//      else return Promise.reject(error);
+//    });
+//  }
+//}

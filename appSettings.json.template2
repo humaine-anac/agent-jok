@@ -1,4 +1,11 @@
 {
   "defaultPort": "14008",
-  "name": "agent008"
+  "name": "agent008",
+  "serviceMap": {
+    "anac-environment-orchestrator": {
+      "protocol": "http",
+      "host": "embodied-ai.sl.cloud9.ibm.com",
+      "port": 14010
+    }
+  }
 }
