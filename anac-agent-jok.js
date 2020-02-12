@@ -7,6 +7,9 @@ const express = require('express');
 const path = require('path');
 const { logExpression, setLogLevel } = require('@cel/logger');
 
+let methodOverride = require('method-override');
+let bodyParser = require('body-parser');
+
 const {classifyMessage} = require('./anac-conversation.js');
 
 let myPort = appSettings.defaultPort || 14036;
@@ -51,20 +54,14 @@ setLogLevel(logLevel);
 
 const app = express();
 
-app.configure(() => {
-  app.set('port', process.env.PORT || myPort);
-  app.set('views', path.join(__dirname, 'views'));
-  app.set('view engine', 'jade');
-  app.use(express.favicon());
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
-});
-
-app.configure('development', () => {
-  app.use(express.errorHandler());
-});
+app.set('port', process.env.PORT || myPort);
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+app.use(methodOverride());
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
 
 const getSafe = (p, o, d) =>
   p.reduce((xs, x) => (xs && xs[x] != null && xs[x] != undefined) ? xs[x] : d, o);
