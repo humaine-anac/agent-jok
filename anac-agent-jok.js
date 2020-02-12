@@ -7,7 +7,6 @@ const { promisify } = require('util');
 const express = require('express');
 const path = require('path');
 const { logExpression, setLogLevel } = require('@cel/logger');
-const dc = require('@cel/discover');
 
 const {classifyMessage} = require('./anac-conversation.js');
 
@@ -68,8 +67,6 @@ app.configure('development', () => {
   app.use(express.errorHandler());
 });
 
-const getDataFromServiceType = promisify(dc().getDataFromServiceType);
-//const postDataToServiceType = promisify(dc().postDataToServiceType);
 const postDataToServiceType = promisify(postDataToServiceTypeNew);
 
 const wrapper = promise => (
@@ -114,7 +111,7 @@ app.post('/classifyMessage', (req, res) => {
   if(req.body) {
     let message = req.body;
     message.speaker = message.speaker || defaultSpeaker;
-    message.addressee = message.addressee || message.defaultAddressee;
+    message.addressee = message.addressee || null;
     message.role = message.role || message.defaultRole;
     message.environmentUUID = message.environmentUUID || defaultEnvironmentUUID;
     logExpression("Message is: ", 2);
@@ -153,7 +150,7 @@ app.post('/receiveMessage', (req, res) => {
   else if(negotiationState.active) { // We received a message and time remains in the round.
     let message = req.body;
     message.speaker = message.speaker || defaultSpeaker;
-    message.addressee = message.addressee || message.defaultAddressee;
+    message.addressee = message.addressee;
     message.role = message.role || message.defaultRole;
     message.environmentUUID = message.environmentUUID || defaultEnvironmentUUID;
     response = { // Acknowledge receipt of message from the environment orchestrator
@@ -281,8 +278,8 @@ app.get('/reportUtility', (req, res) => {
 
 http.createServer(app).listen(app.get('port'), () => {
   logExpression('Express server listening on port ' + app.get('port'), 2);
-  dc().init({port: myPort});
-  dc().installExpressRoutes(app);
+  //dc().init({port: myPort});
+  //dc().installExpressRoutes(app);
 });
 
 
@@ -358,7 +355,7 @@ function interpretMessage(watsonResponse) {
     };
   }
   cmd.metadata = watsonResponse.input;
-  cmd.metadata.addressee = extractAddressee(entities);
+  cmd.metadata.addressee = watsonResponse.input.addressee || extractAddressee(entities); // Expect the addressee to be provided, but extract it if necessary
   cmd.metadata.timeStamp = new Date();
   return cmd;
 }

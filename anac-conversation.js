@@ -95,6 +95,7 @@ function translateWatsonResponse(response, input) {
   let output = result.output || {};
 
   output.input = input;
+  output.addressee = input.addressee;
   output.speaker = input.speaker;
 
   return output;
