@@ -5,6 +5,7 @@ const appSettings = require('./appSettings.json');
 const http = require('http');
 const express = require('express');
 const path = require('path');
+let request = require('request-promise');
 const { logExpression, setLogLevel } = require('@cel/logger');
 
 let methodOverride = require('method-override');
@@ -590,8 +591,6 @@ function quantize(quantity, decimals) {
   let q = parseFloat((quantity * multiplicator).toFixed(11));
   return Math.round(q) / multiplicator;
 }
-
-let request = require('request');
 
 function postDataToServiceType(json, serviceType, path) {
   let serviceMap = appSettings.serviceMap;
