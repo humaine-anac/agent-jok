@@ -77,7 +77,7 @@ const wrapper = promise => (
 
 const getSafe = (p, o, d) =>
   p.reduce((xs, x) => (xs && xs[x] != null && xs[x] != undefined) ? xs[x] : d, o);
-  
+
 let utilityInfo = null;
 let bidHistory;
 
@@ -139,9 +139,9 @@ app.post('/receiveMessage', (req, res) => {
   logExpression("POSTed body: ", 2);
   logExpression(req.body, 2);
   if(timeRemaining <= 0) negotiationState.active = false;
-  
+
   let response = null;
-  
+
   if(!req.body) {
     response = {
       "status": "Failed; no message body"
@@ -168,7 +168,7 @@ app.post('/receiveMessage', (req, res) => {
         logExpression("Bid message is: ", 2);
         logExpression(bidMessage, 2);
         if(bidMessage) { // If warranted, proactively send a new negotiation message to the environment orchestrator
-          sendMessage(bidMessage); 
+          sendMessage(bidMessage);
         }
       })
       .catch(error => {
@@ -278,8 +278,6 @@ app.get('/reportUtility', (req, res) => {
 
 http.createServer(app).listen(app.get('port'), () => {
   logExpression('Express server listening on port ' + app.get('port'), 2);
-  //dc().init({port: myPort});
-  //dc().installExpressRoutes(app);
 });
 
 
@@ -403,7 +401,7 @@ function extractOfferFromEntities(entityList) {
   return {
     quantity,
     price
-  };   
+  };
 }
 
 // Extract price from entities extracted by Watson Assistant
@@ -414,7 +412,7 @@ function extractPrice(entities) {
       price = {
         value: eBlock.metadata.numeric_value,
         unit: eBlock.metadata.unit
-      }; 
+      };
     }
     else if(eBlock.entity == "sys-number" && !price) {
       price = {
@@ -432,7 +430,7 @@ function calculateUtilityAgent(utilityInfo, bundle) {
   let utilityParams = utilityInfo.utility;
   logExpression(utilityParams, 2);
   logExpression(bundle, 2);
-  
+
   let util = bundle.price.value;
   if(bundle.price.unit == utilityInfo.currencyUnit) {
     logExpression("Currency units match.", 2);
@@ -468,12 +466,12 @@ function generateBid(offer) {
   }
   let timeRemaining = ((new Date(negotiationState.stopTime)).getTime() - (new Date()).getTime())/ 1000.0;
   logExpression("There are " + timeRemaining + " seconds remaining in this round.", 2);
-  
+
   let utility = calculateUtilityAgent(utilityInfo, offer);
   logExpression("From calculateUtilityAgent, utility of offer is computed to be: " + utility, 2);
-        
+
   let bundleCost = offer.price.value - utility;
-  
+
   let markupRatio = utility / bundleCost;
 
   let bid = {
@@ -513,10 +511,10 @@ function generateSellPrice(bundleCost, offerPrice, myLastPrice, timeRemaining) {
     maxMarkupRatio = 2.0 - 1.5 * (1.0 - timeRemaining/negotiationState.roundDuration); // Linearly decrease max markup ratio towards just 0.5 at the conclusion of the round
   }
   minMarkupRatio = Math.max(markupRatio, 0.20);
-  
+
   let minProposedMarkup = Math.max(minMarkupRatio, markupRatio);
   let newMarkupRatio = minProposedMarkup + Math.random() * (maxMarkupRatio - minProposedMarkup);
-  
+
   let price = {
     unit: offerPrice.unit,
     value: (1.0 + newMarkupRatio) * bundleCost
@@ -531,7 +529,7 @@ function translateBid(bid) {
   if(bid.type == 'SellOffer') {
     text = "How about if I sell you";
     Object.keys(bid.quantity).forEach(good => {
-      text += " " + bid.quantity[good] + " " + good; 
+      text += " " + bid.quantity[good] + " " + good;
     });
     text += " for " + bid.price.value + " " + bid.price.unit + ".";
   }
@@ -541,7 +539,7 @@ function translateBid(bid) {
   else if(bid.type == 'Accept') {
     text = selectMessage(acceptanceMessages);
     Object.keys(bid.quantity).forEach(good => {
-      text += " " + bid.quantity[good] + " " + good; 
+      text += " " + bid.quantity[good] + " " + good;
     });
     text += " for " + bid.price.value + " " + bid.price.unit + ".";
   }
@@ -574,19 +572,19 @@ function processOffer(message) {
     logExpression("Interpretation of received offer: ", 2);
     logExpression(receivedOffer, 2);
     if(mayIRespond(receivedOffer)) {
-    
+
       if(!bidHistory[message.speaker]) bidHistory[message.speaker] = [];
       bidHistory[message.speaker].push(receivedOffer);
 
       let bid = generateBid(receivedOffer);
       logExpression("Proposed bid is: ", 2);
       logExpression(bid, 2);
-      
+
       bidHistory[message.speaker].push(bid);
       if (bid.type == 'Accept' || bid.type == 'Reject') { // If offer is accepted or rejected, wipe out the bidHistory with this particular negotiation partner
         bidHistory[message.speaker] = null;
       }
-      
+
       let bidResponse = {
         text: translateBid(bid),
         speaker: agentName,
@@ -596,7 +594,7 @@ function processOffer(message) {
         timeStamp: new Date()
       };
       bidResponse.bid = bid;
-      
+
       return bidResponse;
     }
     else {
