@@ -1,0 +1,41 @@
+{
+  "name": "anac-agent",
+  "version": "0.0.1",
+  "private": true,
+  "main": "anac-agent.js",
+  "scripts": {
+    "start": "node anac-agent.js -level 2 > agent001.log &",
+    "pretest": "eslint --ignore-path .gitignore .",
+    "start-docker": "node anac-agent.js -level 2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://us-south.git.cloud.ibm.com/anac-negotiation/anac-agent-jok"
+  },
+  "author": "Jeff Kephart",
+  "dependencies": {
+    "@cel/logger": "^1.0.0",
+    "dotenv": "^4.0.0",
+    "express": "^3.4.8",
+    "lodash": "^4.17.11",
+    "prettier": "^1.16.1",
+    "xregexp": "^2.0",
+    "ibm-watson": "*",
+    "request": "*"
+  },
+  "register": {
+    "instanceName": "ANAC-agent-jok1",
+    "serviceType": "ANAC-agent-jok1",
+    "testRoute": "/test",
+    "testInterval": 30,
+    "launchInvocation": "nohup node ANAC-agent.js -port 14007 -level 2 > agent001.log &",
+    "lcManagerDiscover": {
+      "host": "localhost",
+      "port": 1111
+    },
+    "lcManagerRegister": {
+      "host": "localhost",
+      "port": 1111
+    }
+  }
+}

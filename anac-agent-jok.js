@@ -9,7 +9,7 @@ const path = require('path');
 const { logExpression, setLogLevel } = require('@cel/logger');
 const dc = require('@cel/discover');
 
-const {classifyMessage} = require('./ANAC-conversation.js');
+const {classifyMessage} = require('./anac-conversation.js');
 
 let myPort = appSettings.defaultPort || 14036;
 let agentName = appSettings.name || "Agent007";
