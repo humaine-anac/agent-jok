@@ -360,7 +360,7 @@ function extractOfferFromEntities(entityList) {
   entities.forEach((eBlock,i) => {
     entities[i].index = i;
     if(eBlock.entity == "sys-number") {
-      amount = eBlock.value;
+      amount = parseFloat(eBlock.value);
       state = 'amount';
     }
     else if (eBlock.entity == "good" && state == 'amount') {
