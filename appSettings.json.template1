@@ -4,7 +4,7 @@
   "serviceMap": {
     "anac-environment-orchestrator": {
       "protocol": "http",
-      "host": "embodied-ai.sl.cloud9.ibm.com",
+      "host": "localhost",
       "port": 14010
     }
   }
