@@ -43,7 +43,7 @@ function classifyMessage(input) {
   logExpression(input, 2);
   let assistantId = assistantParams.assistantId;
   let text = null;
-  if (input.text) text = input.text;
+  if (input.text) text = input.text.replace(/[\t\r\n]+/g," ").trim();
 
   let assistantMessageParams = {assistantId: assistantId, input: {}};
   if (text) {
