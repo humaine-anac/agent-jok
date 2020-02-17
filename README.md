@@ -21,12 +21,10 @@ If the skill does not already exist, the json for it can be found in the file `s
 
 Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill.
 
-If you are using crun (cog-runner) to launch this service, edit the `watcher` and `host` lines in the file cog.json
-to reflect the name of the host on which your code is installed.
 
 ```sh
 npm install
-crun load
+node anac-agent-jok.js -level 2 -port 14007 > agent001.log &
 ```
 
 Now you should have a running instance of the negotiation agent.
@@ -85,7 +83,7 @@ Here are brief instructions for testing:
 - Start the environment orchestrator (see the README in repository `anac-environment-orchestrator` for detailed installation)
 - Start two instances of this agent. Follow the installation instructions above twice, for each of two different directories.
  - After installing the first agent, rename its directory so that you can do a second git clone.
- - This time, copy the .json.template2 configuration files instead of the .json.template1 files.
+ - This time, start the agent using the option -port 14008 instead of -port 14007.
 - Start the utility generator (see the README in repository `anac-utility` for detailed instructions)
 
 Now you should be able to test some of the functions. If you only have the environment orchestrator and two agents running,
@@ -105,3 +103,10 @@ you can do some limited testing, as follows:
 Note that there is some delay between when you ask for a round to start and the actual start of the round;
 this delay is set in appSettings.json (roundWarmupDelay). So a bid will not be valid until the round actually starts.
 The default value is 5 seconds; we may want to set it to 30 seconds in the actual competition to give humans time to think about their negotiation strategy. 
+
+Modifying this example negotiation agent to create your own
+----
+
+For now, do your best to understand the code by reading the comments contained in the source.
+
+This section will be expanded soon.
