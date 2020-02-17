@@ -14,12 +14,15 @@ cp assistantParams.json.template assistantParams.json
 ```
 
 For this particular sample agent, you need a Watson Assistant instance and an associated skill.
+*For general audiences, we need to add some instructions for accessing Watson Assistant, creating agents and skills, etc. Can 
+someone on the RPI side do this, as I'm not sure the procedures for doing these things from within IBM are exactly the same.*
 
 If the skill does not already exist, the json for it can be found in the file `skill-HUMAINE-agent.json`. Upload this json file to create your skill.
 
 Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill.
 
-Edit the `watcher` and `host` lines in the file cog.json to reflect the name of the host on which your code is installed.
+If you are using crun (cog-runner) to launch this service, edit the `watcher` and `host` lines in the file cog.json
+to reflect the name of the host on which your code is installed.
 
 ```sh
 npm install
