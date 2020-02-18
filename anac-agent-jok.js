@@ -272,7 +272,7 @@ http.createServer(app).listen(app.get('port'), () => {
 // Self-censor messages that shouldn't be responded to, either because the received offer has the wrong role
 // or because this agent is not the one being addressed.
 function mayIRespond(receivedOffer) {
-  return (receivedOffer.metadata.role == "buyer" && receivedOffer.metadata.addressee == agentName);
+  return (receivedOffer && receivedOffer.metadata.role == "buyer" && receivedOffer.metadata.addressee == agentName);
 }
 
 // Send specified message to thee /receiveMessage route of the environment orchestrator
@@ -290,47 +290,47 @@ function interpretMessage(watsonResponse) {
   let intents = watsonResponse.intents;
   let entities = watsonResponse.entities;
   let cmd = {};
-  if (intents[0].intent == "SellRequest" ||
-      intents[0].intent == "SellOffer" ||
-      intents[0].intent == "BuyRequest" ||
-      intents[0].intent == "BuyOffer") {
-    if (intents[0].confidence > 0.2) {
-      let extractedOffer = extractOfferFromEntities(entities);
-      cmd = {
-        quantity: extractedOffer.quantity
-      };
-      if(extractedOffer.price) {
-        cmd.price = extractedOffer.price;
-        if(watsonResponse.input.role == "buyer") {
-          cmd.type = "BuyOffer";
-        }
-        else if (watsonResponse.input.role == "seller") {
-          cmd.type = "SellOffer";
-        }
+  if (intents[0].intent == "Offer" && intents[0].confidence > 0.2) {
+    let extractedOffer = extractOfferFromEntities(entities);
+    cmd = {
+      quantity: extractedOffer.quantity
+    };
+    if(extractedOffer.price) {
+      cmd.price = extractedOffer.price;
+      if(watsonResponse.input.role == "buyer") {
+        cmd.type = "BuyOffer";
       }
-      else {
-        if(watsonResponse.input.role == "buyer") {
-          cmd.type = "BuyRequest";
-        }
-        else if (watsonResponse.input.role == "seller") {
-          cmd.type = "SellRequest";
-        }
+      else if (watsonResponse.input.role == "seller") {
+        cmd.type = "SellOffer";
+      }
+    }
+    else {
+      if(watsonResponse.input.role == "buyer") {
+        cmd.type = "BuyRequest";
+      }
+      else if (watsonResponse.input.role == "seller") {
+        cmd.type = "SellRequest";
       }
     }
   }
-  else if (intents[0].intent == "AcceptOffer") {
+  else if (intents[0].intent == "AcceptOffer" && intents[0].confidence > 0.2) {
     cmd = {
       type: "AcceptOffer"
     };
   }
-  else if (intents[0].intent == "RejectOffer") {
+  else if (intents[0].intent == "RejectOffer" && intents[0].confidence > 0.2) {
     cmd = {
       type: "RejectOffer"
     };
   }
-  cmd.metadata = watsonResponse.input;
-  cmd.metadata.addressee = watsonResponse.input.addressee || extractAddressee(entities); // Expect the addressee to be provided, but extract it if necessary
-  cmd.metadata.timeStamp = new Date();
+  else {
+    cmd = null;
+  }
+  if(cmd) {
+    cmd.metadata = watsonResponse.input;
+    cmd.metadata.addressee = watsonResponse.input.addressee || extractAddressee(entities); // Expect the addressee to be provided, but extract it if necessary
+    cmd.metadata.timeStamp = new Date();
+  }
   return cmd;
 }
 
