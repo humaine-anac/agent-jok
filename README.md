@@ -17,7 +17,7 @@ For this particular sample agent, you need a Watson Assistant instance and an as
 *For general audiences, we need to add some instructions for accessing Watson Assistant, creating agents and skills, etc. Can 
 someone on the RPI side do this, as I'm not sure the procedures for doing these things from within IBM are exactly the same.*
 
-If the skill does not already exist, the json for it can be found in the file `skill-HUMAINE-agent.json`. Upload this json file to create your skill.
+If the skill does not already exist, the json for it can be found in the file `skill-HUMAINE-agent-v2.json`. Upload this json file to create your skill.
 
 Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill.
 
