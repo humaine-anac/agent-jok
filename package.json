@@ -15,27 +15,15 @@
   "author": "Jeff Kephart",
   "dependencies": {
     "@cel/logger": "^1.0.0",
+    "body-parser": "^1.19.0",
     "dotenv": "^4.0.0",
-    "express": "^3.4.8",
-    "lodash": "^4.17.11",
-    "prettier": "^1.16.1",
-    "xregexp": "^2.0",
+    "express": "^4.17.1",
     "ibm-watson": "*",
-    "request": "*"
-  },
-  "register": {
-    "instanceName": "ANAC-agent-jok1",
-    "serviceType": "ANAC-agent-jok1",
-    "testRoute": "/test",
-    "testInterval": 30,
-    "launchInvocation": "nohup node ANAC-agent.js -port 14007 -level 2 > agent001.log &",
-    "lcManagerDiscover": {
-      "host": "localhost",
-      "port": 1111
-    },
-    "lcManagerRegister": {
-      "host": "localhost",
-      "port": 1111
-    }
+    "lodash": "^4.17.11",
+    "method-override": "^3.0.0",
+    "prettier": "^1.16.1",
+    "request": "*",
+    "request-promise": "^4.2.5",
+    "xregexp": "^2.0"
   }
 }
