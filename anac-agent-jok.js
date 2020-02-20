@@ -4,16 +4,16 @@ if (!envLoaded) console.log('warning:', __filename, '.env cannot be found');
 const appSettings = require('./appSettings.json');
 const http = require('http');
 const express = require('express');
-const path = require('path');
 let request = require('request-promise');
-const { logExpression, setLogLevel } = require('@cel/logger');
+let loggerModule = appSettings.logger || '@cel/logger';
+const { logExpression, setLogLevel } = require(loggerModule);
 
 let methodOverride = require('method-override');
 let bodyParser = require('body-parser');
 
 const {classifyMessage} = require('./anac-conversation.js');
 
-let myPort = appSettings.defaultPort || 14036;
+let myPort = appSettings.defaultPort || 14007;
 let agentName = appSettings.name || "Agent007";
 
 let logLevel = 1;

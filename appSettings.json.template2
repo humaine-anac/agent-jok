@@ -1,6 +1,7 @@
 {
-  "defaultPort": "14007",
-  "name": "agent007",
+  "defaultPort": "14008",
+  "name": "Agent008",
+  "logger": "./logger.js",
   "serviceMap": {
     "anac-environment-orchestrator": {
       "protocol": "http",
