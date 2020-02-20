@@ -257,7 +257,8 @@ will cause the agent to classify the message (as for /classifyMessage), whereupo
     "role": "buyer",
     "environmentUUID": "abcdefg"
   }
-}```
+}
+```
 
 The agent will continue to process the message by running its negotiation algorithm to determine a negotiation action (offer, counteroffer, acceptance, rejection, no action). Then, if some negotiation action is to be taken, the agent will formulate a human-friendly message and POST it to the /relayMessage API of the `anac-environment-orchestrator`. An example of such a message is:
 
