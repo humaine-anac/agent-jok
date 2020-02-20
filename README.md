@@ -1,5 +1,8 @@
 # anac-agent-jok
-This is a simple sample negotiation agent that works with the HUMAINE negotiating agents platform.
+This is a simple sample negotiation agent that works with the HUMAINE negotiating agents platform. It is intended to serve as
+
+- A simple agent against which others may be tested
+- A simple code example upon which more sophisticated negotiation agents can be based
 
 How to install the HUMAINE negotiation agent
 ----
@@ -82,20 +85,13 @@ to think about their negotiation strategy.*
 How to test the negotiation agent (minimal setup)
 ----
 
-To test this agent, you need at a minimum:
+In situations where the chat UI is not available, testing this agent is a little more awkward, but still possible. In this case, you need at a minimum:
 - The environment orchestrator (see the repository `anac-environment-orchestrator`)
-- Two instances of this negotiation agent
+- Two instances of this negotiation agent (see instructions above)
 - The utility generator (see the repository `anac-utility`)
 
 Here are brief instructions for testing:
-- Start the environment orchestrator (see the README in repository `anac-environment-orchestrator` for detailed installation)
-- Start two instances of this agent. Follow the installation instructions above twice, for each of two different directories.
- - After installing the first agent, rename its directory so that you can do a second git clone.
- - This time, start the agent using the option -port 14008 instead of -port 14007.
-- Start the utility generator (see the README in repository `anac-utility` for detailed instructions)
-
-Now you should be able to test some of the functions. If you only have the environment orchestrator and two agents running,
-you can do some limited testing, as follows:
+- Start the environment orchestrator, the utility generator, and two instances of this agent in the manner described above in the normal setup instructions.
 
 - To start a round: `<host>:14010/startRound?round=1` *This calls the environment orchestrator and asks it to start a round.*
 
@@ -111,6 +107,185 @@ you can do some limited testing, as follows:
 Note that there is some delay between when you ask for a round to start and the actual start of the round;
 this delay is set in appSettings.json (roundWarmupDelay). So a bid will not be valid until the round actually starts.
 The default value is 5 seconds; we may want to set it to 30 seconds in the actual competition to give humans time to think about their negotiation strategy. 
+
+APIS
+----
+
+`/classifyMessage (GET)`
+-----
+Calls Watson Assistant on text message supplied in the `text` query parameter. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation.
+
+Example: `http://localhost:14007/classifyMessage?text=Celia%20I%20want%20to%20buy%205%20eggs%20for%20$2` should yield an output like:
+```
+{
+   "generic":[
+      {
+         "response_type":"text",
+         "text":"I didn't get your meaning." // Don't be concerned about this.
+      }
+   ],
+   "intents":[
+      {
+         "intent":"Offer",
+         "confidence":0.39777559260191997
+      },
+      {
+         "intent":"RejectOffer",
+         "confidence":0.10084306088756137
+      },
+      {
+         "intent":"AcceptOffer",
+         "confidence":0.0901161692885708
+      }
+   ],
+   "entities":[
+      {
+         "entity":"avatarName",
+         "location":[
+            0,
+            5
+         ],
+         "value":"Celia",
+         "confidence":1
+      },
+      {
+         "entity":"sys-number",
+         "location":[
+            20,
+            21
+         ],
+         "value":"5",
+         "confidence":1,
+         "metadata":{
+            "numeric_value":5
+         }
+      },
+      {
+         "entity":"good",
+         "location":[
+            22,
+            26
+         ],
+         "value":"egg",
+         "confidence":1
+      },
+      {
+         "entity":"sys-currency",
+         "location":[
+            31,
+            33
+         ],
+         "value":"2",
+         "confidence":1,
+         "metadata":{
+            "numeric_value":2,
+            "unit":"USD"
+         }
+      },
+      {
+         "entity":"sys-number",
+         "location":[
+            32,
+            33
+         ],
+         "value":"2",
+         "confidence":1,
+         "metadata":{
+            "numeric_value":2
+         }
+      }
+   ],
+   "input":{
+      "text":"Celia I want to buy 5 eggs for $2",
+      "speaker":"Jeff",                             // Default used for testing
+      "addressee":"agent007",                       // Default used for testing
+      "role":"buyer",
+      "environmentUUID":"abcdefg"                   // Default used for testing
+   },
+   "addressee":"agent007",
+   "speaker":"Jeff",
+   "environmentUUID":"abcdefg"
+}
+```
+
+
+`/classifyMessage (POST)`
+-----
+Calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation.
+
+Example: http://localhost:14007/classifyMessage with POST body
+```
+{
+    "text": "Celia I want to buy 5 eggs for $2",
+	"speaker": "Matt",
+	"addressee": "Celia",
+	"role": "buyer",
+	"environmentUUID": "abcdefg"
+}
+```
+
+should yield an output very much like the one in the `GET /classifyMessage` example above, except for the speaker and addressee being "Matt" and "Celia", respectively.
+
+
+`/receiveMessage (POST)`
+-----
+Receives a message, interprets it, decides how to respond (e.g. Accept, Reject, or counteroffer),
+// and if it desires sends a separate message to the /receiveMessage route of the environment orchestrator. The POST body is the same as is expected for `/classifyMessage (POST)`, above.
+
+Example: http://localhost:14007/receiveMessage with POST body
+
+```
+{
+  "speaker": "Human",
+  "addressee": "Watson",
+  "text": "Watson I'd like to buy 5 eggs for $2",
+  "role": "buyer",
+  "environmentUUID": "abcdefg",
+  "timestamp": 1582184608849
+}
+```
+
+will cause the agent to classify the message (as for /classifyMessage), whereupon it will respond with an acknowledgment like:
+
+```
+{
+  "status": "Acknowledged",
+  "interpretation": {
+    "text": "Watson I want to buy 5 eggs for $2",
+    "speaker": "Human",
+    "addressee": "Watson",
+    "role": "buyer",
+    "environmentUUID": "abcdefg"
+  }
+}```
+
+The agent will continue to process the message by running its negotiation algorithm to determine a negotiation action (offer, counteroffer, acceptance, rejection, no action). Then, if some negotiation action is to be taken, the agent will formulate a human-friendly message and POST it to the /relayMessage API of the `anac-environment-orchestrator`. An example of such a message is:
+
+```
+{
+  "text": "How about if I sell you 5 egg for 3.73 USD.",
+  "speaker": "Watson",
+  "role": "seller",
+  "addressee": "Human",
+  "environmentUUID": "abcdefg",
+  "timeStamp": "2020-02-20T08:08:05.825Z",
+  "bid": {
+    "quantity": {
+      "egg": 5
+    },
+    "type": "SellOffer",
+    "price": {
+      "unit": "USD",
+      "value": 3.73
+    }
+  }
+}
+```
+*Note that this message is *not* a direct response to the call to `/receiveMessage (POST)` API of the agent, as that response is simply an acknowledgment of the call to `/receiveMessage (POST)`. Instead, this is a separately generated message initiated by the agent (although in practice it may follow the acknowledgment message rather quickly.)*
+
+
+*More API descriptions to follow.*
+
 
 Modifying this example negotiation agent to create your own
 ----
