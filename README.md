@@ -4,13 +4,15 @@ This is a simple sample negotiation agent that works with the HUMAINE negotiatin
 How to install the HUMAINE negotiation agent
 ----
 
+To install an instance of the sample HUMAINE negotiation agent, execute the following commands:
+
 ```sh
 git clone git@us-south.git.cloud.ibm.com:anac-negotiation/anac-agent-jok.git
-cd anac-agent-jok
+mv anac-agent-jok anac-agent-jok1
+cd anac-agent-jok1
 cp appSettings.json.template1 appSettings.json
-cp cog.json.template1 cog.json
-cp package.json.template1 package.json
 cp assistantParams.json.template assistantParams.json
+npm install
 ```
 
 For this particular sample agent, you need a Watson Assistant instance and an associated skill.
@@ -21,50 +23,56 @@ If the skill does not already exist, the json for it can be found in the file `s
 
 Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill.
 
-
+Finally, to instantiate the agent, execute
 ```sh
-npm install
 node anac-agent-jok.js -level 2 -port 14007 > agent001.log &
 ```
 
 Now you should have a running instance of the negotiation agent.
 
+To instantiate a second instance of the agent, repeat all of the steps above, with *jok2* replacing *jok1*, *template2* replacing *template1*, and *-port 14008* replacing *-port 14007*. Explicitly, assuming you are starting from the anac-agent-jok1 directory, execute:
+
+```sh
+cd ..
+git clone git@us-south.git.cloud.ibm.com:anac-negotiation/anac-agent-jok.git
+mv anac-agent-jok anac-agent-jok2
+cd anac-agent-jok2
+cp appSettings.json.template2 appSettings.json
+cp ../anac-agent-jok1/assistantParams.json .
+npm install
+node anac-agent-jok.js -level 2 -port 14008 > agent001.log &
+```
+*Note that the assistantParams.json file should be the same in the anac-agent-jok1 and anac-agent-jok2 directories.*
+
+
 How to test the negotiation agent (normal setup)
 ----
 
 To test this agent under normal circumstances, you need at a minimum:
-- The environment orchestrator (see the repository `anac-environment-orchestrator`)
-- The utility generator (see the repository `anac-utility`)
-- The chat UI (see the repository `chatUI`)
-- Two instances of this negotiation agent
+- The environment orchestrator (repository `anac-environment-orchestrator`)
+- The utility generator (repository `anac-utility` )
+- The chat UI (repository `chatUI`)
+- Two instances of this negotiation agent (this repository, `anac-agent-jok`)
 
 Here are brief instructions for testing:
-- Start the environment orchestrator (see the README in repository `anac-environment-orchestrator` for detailed installation)
-- Start the utility generator (see the README in repository `anac-utility` for detailed instructions)
-- Start the chat UI (see the README in repository `chatUI` for detailed instructions)
-- Start two instances of this agent. Follow the installation instructions above twice, for each of two different directories.
- - After installing the first agent, rename its directory so that you can do a second git clone.
- - This time, copy the .json.template2 configuration files instead of the .json.template1 files.
+- Configure and install the 5 services listed above, following the instructions in the README files of each repository.
 
 Now you should be able to test the system by performing the following steps in order:
 
 - **To start a round**: Click the Start Round button on the chat UI.
 
-- **To simulate a human speaking**: Type text into the chat window. Provided that the round is active
-  (which happens a few seconds after "Start Round" is invoked), and provided that you address the intended addressee as 
-  "Celia" or "Watson", you should see a response from that agent appear in the chat window. You can then respond again and 
-  again (i.e. haggle) with the agent until either your or it accepts an offer, or you give up (and possibly start negotiating
-  with the other agent), or the round ends. If your offer is accepted, or you accept the agent's offer, you can still buy
-  more goods by negotiating with either agent -- up until the point where either the round ends or your funds are exhausted.
+- **To act as a human negotiator**: Wait a few seconds for the round to start. Type text into the chat window. You can do this repeatedly while the round is active. Once either you or a seller agent accepts an offer, the goods are recorded as sold for the agreed-upon amount, and you can start a new negotiation if there is time remaining in the round and you have enough cash. Note that, in this stand-alone version, you will have to address the agents by name with each request so that the agents can know when they are being addressed. Example phrases include:
+  - Celia, I want to buy 5 eggs, 3 cups of sugar and 4 ounces of chocolate for $5.
+  - Watson, I'll give you $4.50 for 4 cups of milk and 3 packets of blueberries.
+  - Celia, I accept your offer of 5 eggs, 3 cups of sugar and 4 ounces of chocolate for $8.50.
+  - Watson, that's too expensive. Forget about it.
+ 
 
 - **To view the queue of messages** received by the environment orchestrator: `<host>:14010/viewQueue`
 
-- You can iterate the second two steps several times to simulate a human buyer responding to the agent message in the message queue. 
-  This step will become much easier with the ChatUI. Then you'll be able to type the human buyer message and see agent responses.
-  Note that, in this stand-alone version, you will have to address the agents by name with each request so that the agents
-  know when they are being addressed.
+- **To view the round totals thus far**: `<host>:14010/viewTotals`
 
-_ **To view the round totals thus far**: `<host>:14010/viewTotals`
+- At the end of the round, the chat UI will display round totals (utility, revenue/cost, and goods purchased) for both agents and for the human
 
 *Note that there is some delay between when you ask for a round to start and the actual start of the round;
 this delay is established when the round is started . So a bid will not be valid until the round actually starts.
