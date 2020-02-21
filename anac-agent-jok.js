@@ -117,6 +117,27 @@ app.post('/classifyMessage', (req, res) => {
 });
 
 // POST API route that simply calls Watson Assistant on the supplied text message to obtain intents and entities
+// Assumes an input message of the form
+// {
+//  "text": "How about if I buy 5 egg for 3.42 USD.",
+//  "speaker": "Human",
+//  "role": "buyer",
+//  "addressee": "Watson",
+//  "environmentUUID": "abcdefg",
+//  "timeStamp": "2020-02-21T16:07:31.159Z"
+//}
+// and outputs a bid of the form
+//{
+//  "type": "BuyOffer",
+//  "price": {
+//    "value": 3.42,
+//    "unit": "USD"
+//  },
+//  "quantity": {
+//    "egg": 5
+//  }
+//}
+
 app.post('/extractBid', (req, res) => {
   logExpression("Inside extractBid (POST).", 2);
   if(req.body) {
