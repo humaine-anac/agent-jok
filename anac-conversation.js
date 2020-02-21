@@ -1,5 +1,6 @@
 const AssistantV2 = require('ibm-watson/assistant/v2');
 const { IamAuthenticator } = require('ibm-watson/auth');
+const appSettings = require('./appSettings.json');
 const assistantParams = require('./assistantParams.json');
 
 const assistant = new AssistantV2({
@@ -13,15 +14,10 @@ const assistant = new AssistantV2({
   }
 });
 
-const logger = require('@cel/logger');
+let loggerModule = appSettings.logger || '@cisl/logger';
+const { logExpression} = require(loggerModule);
 
 let GLOBAL_sessionID = null;
-
-let logLevel = 1;
-
-logger.setLogLevel(logLevel);
-const logExpression = logger.logExpression;
-logExpression('Setting log level to ' + logLevel, 1);
 
 function createSessionId(assistantId) {
   logExpression("About to call assistant.createSession.", 2);
