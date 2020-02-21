@@ -228,7 +228,7 @@ should yield an output very much like the one in the `GET /classifyMessage` exam
 
 `/extractBid (POST)`
 -----
-Like `/classifyMessage`, `/extractBid` calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. It takes the further step of determining the type and parameters of the message (if it is a negotiation act), and formatting this information in the form of a structured bid. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation. But it may be useful for the chatUI or humanUI to use this same code (modularized in `anac-conversation.js` and `extractBid.js` to extract bids from text messages.
+Like `/classifyMessage`, `/extractBid` calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. It takes the further step of determining the type and parameters of the message (if it is a negotiation act), and formatting this information in the form of a structured bid. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation. But it may be useful for the chatUI or humanUI to use this same code (modularized in `anac-conversation.js` and `anac-extract-bid.js` to extract bids from text messages.
 
 Example: http://localhost:14007/extractBid with POST body
 ```
