@@ -12,7 +12,7 @@ let methodOverride = require('method-override');
 let bodyParser = require('body-parser');
 
 const {classifyMessage} = require('./anac-conversation.js');
-const {extractBidFromMessage, interpretMessage} = require('./extractBid');
+const {extractBidFromMessage, interpretMessage} = require('./anac-extract-bid.js');
 
 let myPort = appSettings.defaultPort || 14007;
 let agentName = appSettings.name || "Agent007";
