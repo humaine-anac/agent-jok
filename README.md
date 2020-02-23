@@ -108,7 +108,7 @@ Note that there is some delay between when you ask for a round to start and the 
 this delay is set in appSettings.json (roundWarmupDelay). So a bid will not be valid until the round actually starts.
 The default value is 5 seconds; we may want to set it to 30 seconds in the actual competition to give humans time to think about their negotiation strategy. 
 
-APIS
+APIs
 ----
 
 `/classifyMessage (GET)`
@@ -312,13 +312,230 @@ The agent will continue to process the message by running its negotiation algori
 ```
 *Note that this message is *not* a direct response to the call to `/receiveMessage (POST)` API of the agent, as that response is simply an acknowledgment of the call to `/receiveMessage (POST)`. Instead, this is a separately generated message initiated by the agent (although in practice it may follow the acknowledgment message rather quickly.)*
 
+`/receiveRejection (POST)`
+-----
+Receives a rejection notice from the Environment Orchestrator, signifying that the Environment Orchestrator has not accepted a message that the agent recently relayed to it. The POST body is an exact copy of the rejected message, which for example might have the following form:
 
-*More API descriptions to follow.*
+```
+{
+  "text": "How about if I sell you 1 blueberry for 0.69 USD.",
+  "speaker": "Celia",
+  "role": "seller",
+  "addressee": "Human",
+  "environmentUUID": "abcdefg",
+  "timeStamp": "2020-02-23T02:22:39.152Z",
+  "bid": {
+    "quantity": {
+      "blueberry": 1
+    },
+    "type": "SellOffer",
+    "price": {
+      "unit": "USD",
+      "value": 0.69
+    }
+  }
+}
+```
 
+The response to this API call is either an acknowledgment (when there is a message in the POST body and the round is active) or a failure otherwise. These have the form:
+
+```
+{
+    "status": "acknowledged",
+    "message": *message*
+}
+```
+or 
+
+```
+{
+    "status": "Failed",
+}
+```
+
+respectively. This particular agent adjusts the negotiation state to inactive (active = false) when this message is received -- but agents are free to react in any way that the developer deems appropriate.
+
+`/setUtility (POST)`
+-----
+
+This API, typically called by the Environment Orchestrator, establishes the utility for the agent just before the round starts. It may also contain the name to be used by the agent. 
+
+Example POST body:
+
+```
+{
+  "currencyUnit": "USD",
+  "utility": {
+    "egg": {
+      "type": "unitcost",
+      "unit": "each",
+      "parameters": {
+        "unitcost": 0.32
+      }
+    },
+    "flour": {
+      "type": "unitcost",
+      "unit": "cup",
+      "parameters": {
+        "unitcost": 0.85
+      }
+    },
+    "sugar": {
+      "type": "unitcost",
+      "unit": "cup",
+      "parameters": {
+        "unitcost": 0.71
+      }
+    },
+    "milk": {
+      "type": "unitcost",
+      "unit": "cup",
+      "parameters": {
+        "unitcost": 0.35
+      }
+    },
+    "chocolate": {
+      "type": "unitcost",
+      "unit": "ounce",
+      "parameters": {
+        "unitcost": 0.2
+      }
+    },
+    "blueberry": {
+      "type": "unitcost",
+      "unit": "packet",
+      "parameters": {
+        "unitcost": 0.45
+      }
+    },
+    "vanilla": {
+      "type": "unitcost",
+      "unit": "teaspoon",
+      "parameters": {
+        "unitcost": 0.27
+      }
+    }
+  },
+  "name": "Watson"
+}
+```
+
+In response, the agent sends a status message indicating whether the message has been received successfully: either 
+
+```
+{
+    "status": "Acknowleged",
+    "utility": <exact copy of utility info that was received in the POST body>
+}
+```
+
+or 
+
+```
+{
+    "status": "Failed; no message body",
+    "utility": null
+}
+```
+respectively.
+
+`/reportUtility (GET)`
+-----
+This API reports the current utility function parameters in use by the agent. There are no query parameters.
+
+Example response:
+
+```
+{
+   "currencyUnit":"USD",
+   "utility":{
+      "egg":{
+         "type":"unitcost",
+         "unit":"each",
+         "parameters":{
+            "unitcost":0.32
+         }
+      },
+      "flour":{
+         "type":"unitcost",
+         "unit":"cup",
+         "parameters":{
+            "unitcost":0.85
+         }
+      },
+      "sugar":{
+         "type":"unitcost",
+         "unit":"cup",
+         "parameters":{
+            "unitcost":0.71
+         }
+      },
+      "milk":{
+         "type":"unitcost",
+         "unit":"cup",
+         "parameters":{
+            "unitcost":0.35
+         }
+      },
+      "chocolate":{
+         "type":"unitcost",
+         "unit":"ounce",
+         "parameters":{
+            "unitcost":0.2
+         }
+      },
+      "blueberry":{
+         "type":"unitcost",
+         "unit":"packet",
+         "parameters":{
+            "unitcost":0.45
+         }
+      },
+      "vanilla":{
+         "type":"unitcost",
+         "unit":"teaspoon",
+         "parameters":{
+            "unitcost":0.27
+         }
+      }
+   },
+   "name":"Watson"
+}
+```
+
+`/startRound (POST)`
+-----
+
+This API call, typically received from the Environment Orchestrator, informs the agent that a new round has begun, and provides information about the duration and the round number.
+
+Example POST body:
+
+```
+{
+    "roundDuration": 300n,
+    "roundNumber": 1,
+    "timestamp": "2020-02-23T06:27:10.282Z"
+}
+```
+
+`/endRound (POST)`
+-----
+This API call, typically received from the Environment Orchestrator, informs the agent that the current round has ended. Beyond this point, no offers can be sent or received.
+
+Example POST body:
+
+```
+{
+    roundNumber: 1,
+    "timestamp": "2020-02-23T06:32:10.282Z"
+}
+```
 
 Modifying this example negotiation agent to create your own
 ----
 
-For now, do your best to understand the code by reading the comments contained in the source.
+This is a simple negotiation agent that is intended to serve as a template upon which you can base more.
 
-This section will be expanded soon.
+To build your own, you can borrow as much or as little of this code as you wish. You will need to ensure that you can send and receive messages in the correct formats. All of the internal workings of the agent -- the negotiation algorithm, the conversion from structured bid to text form (perhaps with some amount of attitude), etc. -- is up to you.
+
+You can choose to imbed certain characters in the agent utterance to change the emphasis, pitch or tone of a word or phoneme; see the documentation on Watson Text to Speech for examples of how to do this.
