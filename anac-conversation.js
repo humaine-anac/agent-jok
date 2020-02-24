@@ -1,7 +1,7 @@
 const AssistantV2 = require('ibm-watson/assistant/v2');
 const { IamAuthenticator } = require('ibm-watson/auth');
-const appSettings = require('./appSettings.json');
 const assistantParams = require('./assistantParams.json');
+const { logExpression } = require('@cisl/zepto-logger');
 
 const assistant = new AssistantV2({
   version: assistantParams.version,
@@ -13,9 +13,6 @@ const assistant = new AssistantV2({
     'X-Watson-Learning-Opt-Out': 'true'
   }
 });
-
-let loggerModule = appSettings.logger || '@cisl/logger';
-const { logExpression} = require(loggerModule);
 
 let GLOBAL_sessionID = null;
 
@@ -55,7 +52,7 @@ function classifyMessage(input) {
   }
   logExpression("assistantMessageParams: ", 2);
   logExpression(assistantMessageParams, 2);
-  
+
   return assistant.message(assistantMessageParams)
   .then(response => {
     return translateWatsonResponse(response, input);
@@ -68,7 +65,7 @@ function classifyMessage(input) {
     .then(sessionId => {
       assistantMessageParams.sessionId = sessionId;
       GLOBAL_sessionID = sessionId;
-      
+
       return assistant.message(assistantMessageParams)
       .then(response => {
         return translateWatsonResponse(response, input);
