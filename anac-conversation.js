@@ -1,6 +1,5 @@
 const AssistantV2 = require('ibm-watson/assistant/v2');
 const { IamAuthenticator } = require('ibm-watson/auth');
-const appSettings = require('./appSettings.json');
 const assistantParams = require('./assistantParams.json');
 
 const assistant = new AssistantV2({
@@ -14,8 +13,9 @@ const assistant = new AssistantV2({
   }
 });
 
-let loggerModule = appSettings.logger || '@cisl/logger';
-const { logExpression} = require(loggerModule);
+const {setLogLevel, logExpression} = require('@cisl/zepto-logger');
+let logLevel = 2;
+setLogLevel(logLevel);
 
 let GLOBAL_sessionID = null;
 

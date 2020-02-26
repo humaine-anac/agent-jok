@@ -1,8 +1,8 @@
-const appSettings = require('./appSettings.json');
 const {classifyMessage} = require('./anac-conversation.js');
+const {setLogLevel, logExpression} = require('@cisl/zepto-logger');
 
-let loggerModule = appSettings.logger || '@cisl/logger';
-const { logExpression} = require(loggerModule);
+let logLevel = 1;
+setLogLevel(logLevel);
 
 // From the intents and entities obtained from Watson Assistant, extract a structured representation
 // of the message

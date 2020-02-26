@@ -5,8 +5,7 @@ const appSettings = require('./appSettings.json');
 const http = require('http');
 const express = require('express');
 let request = require('request-promise');
-let loggerModule = appSettings.logger || '@cel/logger';
-const { logExpression, setLogLevel } = require(loggerModule);
+const { logExpression, setLogLevel } = require('@cisl/zepto-logger');
 
 let methodOverride = require('method-override');
 let bodyParser = require('body-parser');
