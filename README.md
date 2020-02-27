@@ -108,152 +108,8 @@ Note that there is some delay between when you ask for a round to start and the 
 this delay is set in appSettings.json (roundWarmupDelay). So a bid will not be valid until the round actually starts.
 The default value is 5 seconds; we may want to set it to 30 seconds in the actual competition to give humans time to think about their negotiation strategy. 
 
-APIs
+Essential APIs
 ----
-
-`/classifyMessage (GET)`
------
-Calls Watson Assistant on text message supplied in the `text` query parameter. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation.
-
-Example: `http://localhost:14007/classifyMessage?text=Celia%20I%20want%20to%20buy%205%20eggs%20for%20$2` should yield an output like:
-```
-{
-   "generic":[
-      {
-         "response_type":"text",
-         "text":"I didn't get your meaning." // Don't be concerned about this.
-      }
-   ],
-   "intents":[
-      {
-         "intent":"Offer",
-         "confidence":0.39777559260191997
-      },
-      {
-         "intent":"RejectOffer",
-         "confidence":0.10084306088756137
-      },
-      {
-         "intent":"AcceptOffer",
-         "confidence":0.0901161692885708
-      }
-   ],
-   "entities":[
-      {
-         "entity":"avatarName",
-         "location":[
-            0,
-            5
-         ],
-         "value":"Celia",
-         "confidence":1
-      },
-      {
-         "entity":"sys-number",
-         "location":[
-            20,
-            21
-         ],
-         "value":"5",
-         "confidence":1,
-         "metadata":{
-            "numeric_value":5
-         }
-      },
-      {
-         "entity":"good",
-         "location":[
-            22,
-            26
-         ],
-         "value":"egg",
-         "confidence":1
-      },
-      {
-         "entity":"sys-currency",
-         "location":[
-            31,
-            33
-         ],
-         "value":"2",
-         "confidence":1,
-         "metadata":{
-            "numeric_value":2,
-            "unit":"USD"
-         }
-      },
-      {
-         "entity":"sys-number",
-         "location":[
-            32,
-            33
-         ],
-         "value":"2",
-         "confidence":1,
-         "metadata":{
-            "numeric_value":2
-         }
-      }
-   ],
-   "input":{
-      "text":"Celia I want to buy 5 eggs for $2",
-      "speaker":"Jeff",                             // Default used for testing
-      "addressee":"agent007",                       // Default used for testing
-      "role":"buyer",
-      "environmentUUID":"abcdefg"                   // Default used for testing
-   },
-   "addressee":"agent007",
-   "speaker":"Jeff",
-   "environmentUUID":"abcdefg"
-}
-```
-
-
-`/classifyMessage (POST)`
------
-Calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation.
-
-Example: http://localhost:14007/classifyMessage with POST body
-```
-{
-    "text": "Celia I want to buy 5 eggs for $2",
-	"speaker": "Matt",
-	"addressee": "Celia",
-	"role": "buyer",
-	"environmentUUID": "abcdefg"
-}
-```
-
-should yield an output very much like the one in the `GET /classifyMessage` example above, except for the speaker and addressee being "Matt" and "Celia", respectively.
-
-`/extractBid (POST)`
------
-Like `/classifyMessage`, `/extractBid` calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. It takes the further step of determining the type and parameters of the message (if it is a negotiation act), and formatting this information in the form of a structured bid. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation. But it may be useful for the chatUI or humanUI to use this same code (modularized in `anac-conversation.js` and `anac-extract-bid.js` to extract bids from text messages.
-
-Example: http://localhost:14007/extractBid with POST body
-```
-{
-    "text": "Celia I want to buy 5 eggs for $2",
-    "speaker": "Matt",
-	"addressee": "Celia",
-	"role": "buyer",
-	"environmentUUID": "abcdefg"
-}
-```
-
-should yield the output:
-```
-{
-  "type": "BuyOffer",
-  "price": {
-    "value": 2,
-    "unit": "USD"
-  },
-  "quantity": {
-    "egg": 5
-  }
-}
-```
 
 `/receiveMessage (POST)`
 -----
@@ -439,6 +295,181 @@ or
 ```
 respectively.
 
+
+`/startRound (POST)`
+-----
+
+This API call, typically received from the Environment Orchestrator, informs the agent that a new round has begun, and provides information about the duration and the round number.
+
+Example POST body:
+
+```
+{
+    "roundDuration": 300n,
+    "roundNumber": 1,
+    "timestamp": "2020-02-23T06:27:10.282Z"
+}
+```
+
+`/endRound (POST)`
+-----
+This API call, typically received from the Environment Orchestrator, informs the agent that the current round has ended. Beyond this point, no offers can be sent or received.
+
+Example POST body:
+
+```
+{
+    roundNumber: 1,
+    "timestamp": "2020-02-23T06:32:10.282Z"
+}
+```
+Additional APIs implemented for this agent
+---
+
+`/classifyMessage (GET)`
+-----
+Calls Watson Assistant on text message supplied in the `text` query parameter. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation.
+
+Example: `http://localhost:14007/classifyMessage?text=Celia%20I%20want%20to%20buy%205%20eggs%20for%20$2` should yield an output like:
+```
+{
+   "generic":[
+      {
+         "response_type":"text",
+         "text":"I didn't get your meaning." // Don't be concerned about this.
+      }
+   ],
+   "intents":[
+      {
+         "intent":"Offer",
+         "confidence":0.39777559260191997
+      },
+      {
+         "intent":"RejectOffer",
+         "confidence":0.10084306088756137
+      },
+      {
+         "intent":"AcceptOffer",
+         "confidence":0.0901161692885708
+      }
+   ],
+   "entities":[
+      {
+         "entity":"avatarName",
+         "location":[
+            0,
+            5
+         ],
+         "value":"Celia",
+         "confidence":1
+      },
+      {
+         "entity":"sys-number",
+         "location":[
+            20,
+            21
+         ],
+         "value":"5",
+         "confidence":1,
+         "metadata":{
+            "numeric_value":5
+         }
+      },
+      {
+         "entity":"good",
+         "location":[
+            22,
+            26
+         ],
+         "value":"egg",
+         "confidence":1
+      },
+      {
+         "entity":"sys-currency",
+         "location":[
+            31,
+            33
+         ],
+         "value":"2",
+         "confidence":1,
+         "metadata":{
+            "numeric_value":2,
+            "unit":"USD"
+         }
+      },
+      {
+         "entity":"sys-number",
+         "location":[
+            32,
+            33
+         ],
+         "value":"2",
+         "confidence":1,
+         "metadata":{
+            "numeric_value":2
+         }
+      }
+   ],
+   "input":{
+      "text":"Celia I want to buy 5 eggs for $2",
+      "speaker":"Jeff",                             // Default used for testing
+      "addressee":"agent007",                       // Default used for testing
+      "role":"buyer",
+      "environmentUUID":"abcdefg"                   // Default used for testing
+   },
+   "addressee":"agent007",
+   "speaker":"Jeff",
+   "environmentUUID":"abcdefg"
+}
+```
+
+
+`/classifyMessage (POST)`
+-----
+Calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation.
+
+Example: http://localhost:14007/classifyMessage with POST body
+```
+{
+    "text": "Celia I want to buy 5 eggs for $2",
+	"speaker": "Matt",
+	"addressee": "Celia",
+	"role": "buyer",
+	"environmentUUID": "abcdefg"
+}
+```
+
+should yield an output very much like the one in the `GET /classifyMessage` example above, except for the speaker and addressee being "Matt" and "Celia", respectively.
+
+`/extractBid (POST)`
+-----
+Like `/classifyMessage`, `/extractBid` calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. It takes the further step of determining the type and parameters of the message (if it is a negotiation act), and formatting this information in the form of a structured bid. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation. But it may be useful for the chatUI or humanUI to use this same code (modularized in `anac-conversation.js` and `anac-extract-bid.js` to extract bids from text messages.
+
+Example: http://localhost:14007/extractBid with POST body
+```
+{
+    "text": "Celia I want to buy 5 eggs for $2",
+    "speaker": "Matt",
+	"addressee": "Celia",
+	"role": "buyer",
+	"environmentUUID": "abcdefg"
+}
+```
+
+should yield the output:
+```
+{
+  "type": "BuyOffer",
+  "price": {
+    "value": 2,
+    "unit": "USD"
+  },
+  "quantity": {
+    "egg": 5
+  }
+}
+```
+
 `/reportUtility (GET)`
 -----
 This API reports the current utility function parameters in use by the agent. There are no query parameters.
@@ -503,33 +534,7 @@ Example response:
 }
 ```
 
-`/startRound (POST)`
------
 
-This API call, typically received from the Environment Orchestrator, informs the agent that a new round has begun, and provides information about the duration and the round number.
-
-Example POST body:
-
-```
-{
-    "roundDuration": 300n,
-    "roundNumber": 1,
-    "timestamp": "2020-02-23T06:27:10.282Z"
-}
-```
-
-`/endRound (POST)`
------
-This API call, typically received from the Environment Orchestrator, informs the agent that the current round has ended. Beyond this point, no offers can be sent or received.
-
-Example POST body:
-
-```
-{
-    roundNumber: 1,
-    "timestamp": "2020-02-23T06:32:10.282Z"
-}
-```
 
 Modifying this example negotiation agent to create your own
 ----
