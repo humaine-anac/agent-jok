@@ -111,105 +111,6 @@ The default value is 5 seconds; we may want to set it to 30 seconds in the actua
 Essential APIs
 ----
 
-`/receiveMessage (POST)`
------
-Receives a message, interprets it, decides how to respond (e.g. Accept, Reject, or counteroffer),
-// and if it desires sends a separate message to the /receiveMessage route of the environment orchestrator. The POST body is the same as is expected for `/classifyMessage (POST)`, above.
-
-Example: http://localhost:14007/receiveMessage with POST body
-
-```
-{
-  "speaker": "Human",
-  "addressee": "Watson",
-  "text": "Watson I'd like to buy 5 eggs for $2",
-  "role": "buyer",
-  "environmentUUID": "abcdefg",
-  "timestamp": 1582184608849
-}
-```
-
-will cause the agent to classify the message (as for /classifyMessage), whereupon it will respond with an acknowledgment like:
-
-```
-{
-  "status": "Acknowledged",
-  "interpretation": {
-    "text": "Watson I want to buy 5 eggs for $2",
-    "speaker": "Human",
-    "addressee": "Watson",
-    "role": "buyer",
-    "environmentUUID": "abcdefg"
-  }
-}
-```
-
-The agent will continue to process the message by running its negotiation algorithm to determine a negotiation action (offer, counteroffer, acceptance, rejection, no action). Then, if some negotiation action is to be taken, the agent will formulate a human-friendly message and POST it to the /relayMessage API of the `anac-environment-orchestrator`. An example of such a message is:
-
-```
-{
-  "text": "How about if I sell you 5 egg for 3.73 USD.",
-  "speaker": "Watson",
-  "role": "seller",
-  "addressee": "Human",
-  "environmentUUID": "abcdefg",
-  "timeStamp": "2020-02-20T08:08:05.825Z",
-  "bid": {
-    "quantity": {
-      "egg": 5
-    },
-    "type": "SellOffer",
-    "price": {
-      "unit": "USD",
-      "value": 3.73
-    }
-  }
-}
-```
-*Note that this message is *not* a direct response to the call to `/receiveMessage (POST)` API of the agent, as that response is simply an acknowledgment of the call to `/receiveMessage (POST)`. Instead, this is a separately generated message initiated by the agent (although in practice it may follow the acknowledgment message rather quickly.)*
-
-`/receiveRejection (POST)`
------
-Receives a rejection notice from the Environment Orchestrator, signifying that the Environment Orchestrator has not accepted a message that the agent recently relayed to it. The POST body is an exact copy of the rejected message, which for example might have the following form:
-
-```
-{
-  "text": "How about if I sell you 1 blueberry for 0.69 USD.",
-  "speaker": "Celia",
-  "role": "seller",
-  "addressee": "Human",
-  "environmentUUID": "abcdefg",
-  "timeStamp": "2020-02-23T02:22:39.152Z",
-  "bid": {
-    "quantity": {
-      "blueberry": 1
-    },
-    "type": "SellOffer",
-    "price": {
-      "unit": "USD",
-      "value": 0.69
-    }
-  }
-}
-```
-
-The response to this API call is either an acknowledgment (when there is a message in the POST body and the round is active) or a failure otherwise. These have the form:
-
-```
-{
-    "status": "acknowledged",
-    "message": *message*
-}
-```
-or 
-
-```
-{
-    "status": "Failed",
-}
-```
-
-respectively. This particular agent adjusts the negotiation state to inactive (active = false) when this message is received -- but agents are free to react in any way that the developer deems appropriate.
 
 `/setUtility (POST)`
 -----
@@ -323,6 +224,109 @@ Example POST body:
     "timestamp": "2020-02-23T06:32:10.282Z"
 }
 ```
+
+`/receiveMessage (POST)`
+-----
+Receives a message, interprets it, decides how to respond (e.g. Accept, Reject, or counteroffer),
+// and if it desires sends a separate message to the /relayMessage route of the environment orchestrator. The POST body is the same as is expected for `/classifyMessage (POST)`, above.
+
+Example: http://localhost:14007/receiveMessage with POST body
+
+```
+{
+  "speaker": "Human",
+  "addressee": "Watson",
+  "text": "Watson I'd like to buy 5 eggs for $2",
+  "role": "buyer",
+  "environmentUUID": "abcdefg",
+  "timestamp": 1582184608849
+}
+```
+
+will cause the agent to classify the message (as for /classifyMessage), whereupon it will respond with an acknowledgment like:
+
+```
+{
+  "status": "Acknowledged",
+  "interpretation": {
+    "text": "Watson I want to buy 5 eggs for $2",
+    "speaker": "Human",
+    "addressee": "Watson",
+    "role": "buyer",
+    "environmentUUID": "abcdefg"
+  }
+}
+```
+
+The agent will continue to process the message by running its negotiation algorithm to determine a negotiation action (offer, counteroffer, acceptance, rejection, no action). Then, if some negotiation action is to be taken, the agent will formulate a human-friendly message and POST it to the /relayMessage API of the `anac-environment-orchestrator`. An example of such a message is:
+
+```
+{
+  "text": "How about if I sell you 5 egg for 3.73 USD.",
+  "speaker": "Watson",
+  "role": "seller",
+  "addressee": "Human",
+  "environmentUUID": "abcdefg",
+  "timeStamp": "2020-02-20T08:08:05.825Z",
+  "bid": {
+    "quantity": {
+      "egg": 5
+    },
+    "type": "SellOffer",
+    "price": {
+      "unit": "USD",
+      "value": 3.73
+    }
+  }
+}
+```
+*Note that this message is *not* a direct response to the call to `/receiveMessage (POST)` API of the agent, as that response is simply an acknowledgment of the call to `/receiveMessage (POST)`. Instead, this is a separately generated message initiated by the agent (although in practice it may follow the acknowledgment message rather quickly.)*
+
+
+`/receiveRejection (POST)`
+-----
+Receives a rejection notice from the Environment Orchestrator, signifying that the Environment Orchestrator has not accepted a message that the agent recently relayed to it. The POST body is an exact copy of the rejected message, which for example might have the following form:
+
+```
+{
+  "text": "How about if I sell you 1 blueberry for 0.69 USD.",
+  "speaker": "Celia",
+  "role": "seller",
+  "addressee": "Human",
+  "environmentUUID": "abcdefg",
+  "timeStamp": "2020-02-23T02:22:39.152Z",
+  "bid": {
+    "quantity": {
+      "blueberry": 1
+    },
+    "type": "SellOffer",
+    "price": {
+      "unit": "USD",
+      "value": 0.69
+    }
+  }
+}
+```
+
+The response to this API call is either an acknowledgment (when there is a message in the POST body and the round is active) or a failure otherwise. These have the form:
+
+```
+{
+    "status": "acknowledged",
+    "message": *message*
+}
+```
+or 
+
+```
+{
+    "status": "Failed",
+}
+```
+
+respectively. This particular agent adjusts the negotiation state to inactive (active = false) when this message is received -- but agents are free to react in any way that the developer deems appropriate.
+
+
 Additional APIs implemented for this agent
 ---
 
