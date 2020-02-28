@@ -1,4 +1,4 @@
-const {classifyMessage} = require('./anac-conversation.js');
+const {classifyMessage} = require('./conversation.js');
 const {setLogLevel, logExpression} = require('@cisl/zepto-logger');
 
 let logLevel = 1;
