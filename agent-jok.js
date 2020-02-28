@@ -10,8 +10,8 @@ const { logExpression, setLogLevel } = require('@cisl/zepto-logger');
 let methodOverride = require('method-override');
 let bodyParser = require('body-parser');
 
-const {classifyMessage} = require('./anac-conversation.js');
-const {extractBidFromMessage, interpretMessage} = require('./anac-extract-bid.js');
+const {classifyMessage} = require('./conversation.js');
+const {extractBidFromMessage, interpretMessage} = require('./extract-bid.js');
 
 let myPort = appSettings.defaultPort || 14007;
 let agentName = appSettings.name || "Agent007";
