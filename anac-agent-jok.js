@@ -322,7 +322,7 @@ function mayIRespond(receivedOffer) {
 function sendMessage(message) {
   logExpression("Sending message to environment orchestrator: ", 2);
   logExpression(message, 2);
-  return postDataToServiceType(message, 'anac-environment-orchestrator', '/relayMessage');
+  return postDataToServiceType(message, 'environment-orchestrator', '/relayMessage');
 }
 
 // Calculate utility for a given bundle of goods and price, given the utility function
