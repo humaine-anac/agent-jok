@@ -1,4 +1,4 @@
-# anac-agent-jok
+# agent-jok
 This is a simple sample negotiation agent that works with the HUMAINE negotiating agents platform. It is intended to serve as
 
 - A simple agent against which others may be tested
@@ -10,9 +10,9 @@ How to install the HUMAINE negotiation agent
 To install an instance of the sample HUMAINE negotiation agent, execute the following commands:
 
 ```sh
-git clone git@us-south.git.cloud.ibm.com:anac-negotiation/anac-agent-jok.git
-mv anac-agent-jok anac-agent-jok1
-cd anac-agent-jok1
+git clone git@github.com:humaine-anac/agent-jok.git
+mv agent-jok agent-jok1
+cd agent-jok1
 cp appSettings.json.template1 appSettings.json
 cp assistantParams.json.template assistantParams.json
 npm install
@@ -28,34 +28,34 @@ Edit the file assistantParams.json to include the correct apikey, url, and assis
 
 Finally, to instantiate the agent, execute
 ```sh
-node anac-agent-jok.js -level 2 -port 14007 > agent001.log &
+node agent-jok.js -level 2 -port 14007 > agent001.log &
 ```
 
 Now you should have a running instance of the negotiation agent.
 
-To instantiate a second instance of the agent, repeat all of the steps above, with *jok2* replacing *jok1*, *template2* replacing *template1*, and *-port 14008* replacing *-port 14007*. Explicitly, assuming you are starting from the anac-agent-jok1 directory, execute:
+To instantiate a second instance of the agent, repeat all of the steps above, with *jok2* replacing *jok1*, *template2* replacing *template1*, and *-port 14008* replacing *-port 14007*. Explicitly, assuming you are starting from the agent-jok1 directory, execute:
 
 ```sh
 cd ..
-git clone git@us-south.git.cloud.ibm.com:anac-negotiation/anac-agent-jok.git
-mv anac-agent-jok anac-agent-jok2
-cd anac-agent-jok2
+git clone git@github.com:humaine-anac/agent-jok.git
+mv agent-jok agent-jok2
+cd agent-jok2
 cp appSettings.json.template2 appSettings.json
-cp ../anac-agent-jok1/assistantParams.json .
+cp ../agent-jok1/assistantParams.json .
 npm install
-node anac-agent-jok.js -level 2 -port 14008 > agent001.log &
+node agent-jok.js -level 2 -port 14008 > agent001.log &
 ```
-*Note that the assistantParams.json file should be the same in the anac-agent-jok1 and anac-agent-jok2 directories.*
+*Note that the assistantParams.json file should be the same in the agent-jok1 and agent-jok2 directories.*
 
 
 How to test the negotiation agent (normal setup)
 ----
 
 To test this agent under normal circumstances, you need at a minimum:
-- The environment orchestrator (repository `anac-environment-orchestrator`)
-- The utility generator (repository `anac-utility` )
+- The environment orchestrator (repository `environment-orchestrator`)
+- The utility generator (repository `utility` )
 - The chat UI (repository `chatUI`)
-- Two instances of this negotiation agent (this repository, `anac-agent-jok`)
+- Two instances of this negotiation agent (this repository, `agent-jok`)
 
 Here are brief instructions for testing:
 - Configure and install the 5 services listed above, following the instructions in the README files of each repository.
@@ -86,9 +86,9 @@ How to test the negotiation agent (minimal setup)
 ----
 
 In situations where the chat UI is not available, testing this agent is a little more awkward, but still possible. In this case, you need at a minimum:
-- The environment orchestrator (see the repository `anac-environment-orchestrator`)
+- The environment orchestrator (see the repository `environment-orchestrator`)
 - Two instances of this negotiation agent (see instructions above)
-- The utility generator (see the repository `anac-utility`)
+- The utility generator (see the repository `utility`)
 
 Here are brief instructions for testing:
 - Start the environment orchestrator, the utility generator, and two instances of this agent in the manner described above in the normal setup instructions.
@@ -274,7 +274,7 @@ will cause the agent to classify the message (as for /classifyMessage), whereupo
 }
 ```
 
-The agent will continue to process the message by running its negotiation algorithm to determine a negotiation action (offer, counteroffer, acceptance, rejection, no action). Then, if some negotiation action is to be taken, the agent will formulate a human-friendly message and POST it to the /relayMessage API of the `anac-environment-orchestrator`. An example of such a message is:
+The agent will continue to process the message by running its negotiation algorithm to determine a negotiation action (offer, counteroffer, acceptance, rejection, no action). Then, if some negotiation action is to be taken, the agent will formulate a human-friendly message and POST it to the /relayMessage API of the `environment-orchestrator`. An example of such a message is:
 
 ```
 {
@@ -463,7 +463,7 @@ should yield an output very much like the one in the `GET /classifyMessage` exam
 
 `/extractBid (POST)`
 -----
-Like `/classifyMessage`, `/extractBid` calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. It takes the further step of determining the type and parameters of the message (if it is a negotiation act), and formatting this information in the form of a structured bid. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation. But it may be useful for the chatUI or humanUI to use this same code (modularized in `anac-conversation.js` and `anac-extract-bid.js` to extract bids from text messages.
+Like `/classifyMessage`, `/extractBid` calls Watson Assistant on a POST body that contains the text to be classified, along with other metadata such as speaker, addressee, role, etc. It takes the further step of determining the type and parameters of the message (if it is a negotiation act), and formatting this information in the form of a structured bid. This API is intended for test purposes, and not expected to be used in the context of a round of negotiation. But it may be useful for the chatUI or humanUI to use this same code (modularized in `conversation.js` and `extract-bid.js` to extract bids from text messages.
 
 Example: http://localhost:14007/extractBid with POST body
 ```
