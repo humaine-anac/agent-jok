@@ -206,9 +206,17 @@ Example POST body:
 
 ```
 {
-    "roundDuration": 300n,
+    "roundDuration": 300,
     "roundNumber": 1,
     "timestamp": "2020-02-23T06:27:10.282Z"
+}
+```
+
+In response, the agent sends an acknowledgment of the form:
+
+```
+{
+    "status": "Acknowledged"
 }
 ```
 
@@ -222,6 +230,14 @@ Example POST body:
 {
     roundNumber: 1,
     "timestamp": "2020-02-23T06:32:10.282Z"
+}
+```
+
+In response, the agent sends an acknowledgment of the form:
+
+```
+{
+    "status": "Acknowledged"
 }
 ```
 

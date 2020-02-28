@@ -10,8 +10,8 @@ const { logExpression, setLogLevel } = require('@cisl/zepto-logger');
 let methodOverride = require('method-override');
 let bodyParser = require('body-parser');
 
-const {classifyMessage} = require('./anac-conversation.js');
-const {extractBidFromMessage, interpretMessage} = require('./anac-extract-bid.js');
+const {classifyMessage} = require('./conversation.js');
+const {extractBidFromMessage, interpretMessage} = require('./extract-bid.js');
 
 let myPort = appSettings.defaultPort || 14007;
 let agentName = appSettings.name || "Agent007";
@@ -322,7 +322,7 @@ function mayIRespond(receivedOffer) {
 function sendMessage(message) {
   logExpression("Sending message to environment orchestrator: ", 2);
   logExpression(message, 2);
-  return postDataToServiceType(message, 'anac-environment-orchestrator', '/relayMessage');
+  return postDataToServiceType(message, 'environment-orchestrator', '/relayMessage');
 }
 
 // Calculate utility for a given bundle of goods and price, given the utility function
