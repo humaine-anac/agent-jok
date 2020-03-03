@@ -45,8 +45,15 @@ function interpretMessage(watsonResponse) {
       type: "RejectOffer"
     };
   }
+  else if (intents[0].intent == "Information" && intents[0].confidence > 0.2) {
+    cmd = {
+      type: "Information"
+    };
+  }
   else {
-    cmd = null;
+    cmd = {
+      type: "NotUnderstood"
+    };
   }
   if(cmd) {
     cmd.metadata = watsonResponse.input;

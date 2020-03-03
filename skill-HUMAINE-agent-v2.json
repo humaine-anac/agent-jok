@@ -4,43 +4,58 @@
       "intent": "RejectOffer",
       "examples": [
         {
-          "text": "No, that is not acceptable."
-        },
-        {
-          "text": "No, I don't like your offer."
-        },
-        {
-          "text": "Forget about it."
-        },
-        {
-          "text": "Forget it."
+          "text": "No deal."
         },
         {
           "text": "That's not good enough"
         },
         {
-          "text": "No deal."
+          "text": "Forget it."
+        },
+        {
+          "text": "Forget about it."
+        },
+        {
+          "text": "No, I don't like your offer."
+        },
+        {
+          "text": "No, that is not acceptable."
         },
         {
           "text": "No, forget about it."
+        },
+        {
+          "text": "I reject your offer"
         }
       ],
       "description": "Offer rejection"
+    },
+    {
+      "intent": "Information",
+      "examples": [
+        {
+          "text": "I'm sorry. I was ready to make a deal, but apparently you don't have enough money left."
+        },
+        {
+          "text": "I was ready to make a deal, but apparently you don't have enough money left."
+        },
+        {
+          "text": "I hear that you don't have enough money to cover your offer, so I'm withdrawing my acceptance."
+        },
+        {
+          "text": "I'm sorry. I was going to make a deal, but you don't have enough money left."
+        },
+        {
+          "text": "You don't have enough budget left"
+        }
+      ],
+      "description": "Informational messages that contain no direct negotiation content"
     },
     {
       "intent": "AcceptOffer",
       "examples": [
         {
           "text": "OK, it's a deal!"
-        },
-        {
-          "text": "OK, that's a good deal"
-        },
-        {
-          "text": "I accept."
-        },
-        {
-          "text": "You got it."
         },
         {
           "text": "I accept your offer."
@@ -50,6 +65,15 @@
         },
         {
           "text": "I'll take it"
+        },
+        {
+          "text": "OK, that's a good deal"
+        },
+        {
+          "text": "I accept."
+        },
+        {
+          "text": "You got it."
         }
       ],
       "description": "Offer acceptance"
@@ -106,43 +130,43 @@
           "text": "Is anyone selling @good"
         },
         {
-          "text": "I want @sys-number @good and @sys-number @good"
-        },
-        {
-          "text": "I want some @good"
-        },
-        {
-          "text": "I want @sys-number @good"
-        },
-        {
-          "text": "I'm interested in buying some @good"
-        },
-        {
-          "text": "Is anyone selling @good and @good"
-        },
-        {
-          "text": "I'd like to buy @good"
-        },
-        {
-          "text": "I'd like to buy @sys-number @good"
-        },
-        {
-          "text": "How about if you give me @sys-number @good and @sys-number @good for @sys-currency"
-        },
-        {
-          "text": "I want @sys-number @good and @sys-number @good for @sys-currency"
-        },
-        {
-          "text": "I want @sys-number @good for @sys-currency"
-        },
-        {
-          "text": "I want to buy @sys-number @good and @sys-number @good for @sys-currency"
+          "text": "I will give you @sys-currency for @sys-number @good"
         },
         {
           "text": "I want to buy @sys-number @good and @sys-number good for @sys-currency"
         },
         {
-          "text": "I will give you @sys-currency for @sys-number @good"
+          "text": "I want to buy @sys-number @good and @sys-number @good for @sys-currency"
+        },
+        {
+          "text": "I want @sys-number @good for @sys-currency"
+        },
+        {
+          "text": "I want @sys-number @good and @sys-number @good for @sys-currency"
+        },
+        {
+          "text": "How about if you give me @sys-number @good and @sys-number @good for @sys-currency"
+        },
+        {
+          "text": "I'd like to buy @sys-number @good"
+        },
+        {
+          "text": "I'd like to buy @good"
+        },
+        {
+          "text": "Is anyone selling @good and @good"
+        },
+        {
+          "text": "I'm interested in buying some @good"
+        },
+        {
+          "text": "I want @sys-number @good"
+        },
+        {
+          "text": "I want some @good"
+        },
+        {
+          "text": "I want @sys-number @good and @sys-number @good"
         }
       ],
       "description": "Lumps together buy/sell requests/offers"

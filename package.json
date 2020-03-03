@@ -1,16 +1,16 @@
 {
-  "name": "anac-agent",
-  "version": "0.0.1",
+  "name": "agent-jok",
+  "version": "0.0.2",
   "private": true,
-  "main": "anac-agent.js",
+  "main": "agent-jok.js",
   "scripts": {
-    "start": "node anac-agent.js -level 2 > agent001.log &",
+    "start": "node agent-jok.js -level 2 > agent001.log &",
     "pretest": "eslint --ignore-path .gitignore .",
-    "start-docker": "node anac-agent.js -level 2"
+    "start-docker": "node agent-jok.js -level 2"
   },
   "repository": {
     "type": "git",
-    "url": "https://us-south.git.cloud.ibm.com/anac-negotiation/anac-agent-jok"
+    "url": "https://github.com/humaine-anac/agent-jok"
   },
   "author": "Jeff Kephart",
   "dependencies": {

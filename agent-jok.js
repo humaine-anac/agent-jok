@@ -35,6 +35,12 @@ const acceptanceMessages = [
   "I accept your offer. Just to confirm, I'll give you"
 ];
 
+const confirmAcceptanceMessages = [
+  "I confirm that I'm selling you ",
+  "I'm so glad! This is to confirm that I'll give you ",
+  "Perfect! Just to confirm, I'm giving you "
+];
+
 let negotiationState = {
   "active": false,
   "startTime": null,
@@ -190,23 +196,19 @@ app.post('/receiveMessage', (req, res) => {
     };
     logExpression("Message is: ", 2);
     logExpression(message, 2);
-    if(message.speaker == agentName) {
-      logExpression("This message is from me! I'm not going to talk to myself.", 2);
-    }
-    else {
-      processOffer(message)
-      .then(bidMessage => {
-        logExpression("Bid message is: ", 2);
-        logExpression(bidMessage, 2);
-        if(bidMessage) { // If warranted, proactively send a new negotiation message to the environment orchestrator
-          sendMessage(bidMessage);
-        }
-      })
-      .catch(error => {
-        logExpression("Did not send message; encountered error: ", 1);
-        logExpression(error, 1);
-      });
-    }
+    
+    processMessage(message)
+    .then(bidMessage => {
+      logExpression("Bid message is: ", 2);
+      logExpression(bidMessage, 2);
+      if(bidMessage) { // If warranted, proactively send a new negotiation message to the environment orchestrator
+        sendMessage(bidMessage);
+      }
+    })
+    .catch(error => {
+      logExpression("Did not send message; encountered error: ", 1);
+      logExpression(error, 1);
+    });
   }
   else { // Either there's no body or the round is over.
     response = {
@@ -225,8 +227,6 @@ app.post('/receiveRejection', (req, res) => {
   logExpression("POSTed body: ", 2);
   logExpression(req.body, 2);
   if(timeRemaining <= 0) negotiationState.active = false;
-  logExpression("Rejected message is: ", 2);
-  logExpression(message, 2);
   let response = null;
   if(!req.body) {
     response = {
@@ -235,10 +235,23 @@ app.post('/receiveRejection', (req, res) => {
   }
   else if(negotiationState.active) { // We received a message and time remains in the round.
     let message = req.body;
+    logExpression("Rejected message is: ", 2);
+    logExpression(message, 2);
     response = { // Acknowledge receipt of message from the environment orchestrator
       status: "Acknowledged",
       message
     };
+    if(message.rationale &&
+       message.rationale == "Insufficient budget" &&
+       message.bid &&
+       message.bid.type == "Accept") { // We tried to respond with an accept, but were rejected. So that the buyer will not interpret our apparent silence as rudeness, explain to the Human that he/she were rejected due to insufficient budget.
+      let msg2 = JSON.parse(JSON.stringify(message));
+      delete msg2.rationale;
+      delete msg2.bid;
+      msg2.timestamp = new Date();
+      msg2.text = "I'm sorry, " + msg2.addressee + ". I was ready to make a deal, but apparently you don't have enough money left.";
+      sendMessage(msg2);
+    }
   } else { // Either there's no body or the round is over.
     response = {
       status: "Failed; round not active"
@@ -314,11 +327,11 @@ http.createServer(app).listen(app.get('port'), () => {
 
 // Self-censor messages that shouldn't be responded to, either because the received offer has the wrong role
 // or because this agent is not the one being addressed.
-function mayIRespond(receivedOffer) {
-  return (receivedOffer && receivedOffer.metadata.role == "buyer" && receivedOffer.metadata.addressee == agentName);
+function mayIRespond(interpretation) {
+  return (interpretation && interpretation.metadata.role == "buyer" && interpretation.metadata.addressee == agentName);
 }
 
-// Send specified message to thee /receiveMessage route of the environment orchestrator
+// Send specified message to the /receiveMessage route of the environment orchestrator
 function sendMessage(message) {
   logExpression("Sending message to environment orchestrator: ", 2);
   logExpression(message, 2);
@@ -332,17 +345,20 @@ function calculateUtilityAgent(utilityInfo, bundle) {
   logExpression(utilityParams, 2);
   logExpression(bundle, 2);
 
-  let util = bundle.price.value;
-  if(bundle.price.unit == utilityInfo.currencyUnit) {
-    logExpression("Currency units match.", 2);
+  let util = 0;
+  if(bundle.price && bundle.price.value && bundle.quantity) {
+    util = bundle.price.value;
+    if(bundle.price.unit == utilityInfo.currencyUnit) {
+      logExpression("Currency units match.", 2);
+    }
+    else {
+      logExpression("WARNING: Currency units do not match!", 2);
+    }
+    Object.keys(bundle.quantity).forEach(good => {
+      logExpression("Good: " + good, 2);
+      util -= utilityParams[good].parameters.unitcost * bundle.quantity[good];
+    });
   }
-  else {
-    logExpression("WARNING: Currency units do not match!", 2);
-  }
-  Object.keys(bundle.quantity).forEach(good => {
-    logExpression("Good: " + good, 2);
-    util -= utilityParams[good].parameters.unitcost * bundle.quantity[good];
-  });
   return util;
 }
 
@@ -425,7 +441,7 @@ function generateSellPrice(bundleCost, offerPrice, myLastPrice, timeRemaining) {
 }
 
 // Translate structured bid to text, with some randomization
-function translateBid(bid) {
+function translateBid(bid, confirm) {
   let text = "";
   if(bid.type == 'SellOffer') {
     text = "How about if I sell you";
@@ -438,7 +454,12 @@ function translateBid(bid) {
     text = selectMessage(rejectionMessages);
   }
   else if(bid.type == 'Accept') {
-    text = selectMessage(acceptanceMessages);
+    if(confirm) {
+      text = selectMessage(confirmAcceptanceMessages);
+    }
+    else {
+      text = selectMessage(acceptanceMessages);
+    }
     Object.keys(bid.quantity).forEach(good => {
       text += " " + bid.quantity[good] + " " + good;
     });
@@ -454,57 +475,135 @@ function selectMessage(messageSet) {
   return messageSet[indx];
 }
 
-// Given structured representation of an offer, orchestrate a sequence of
+// Orchestrate a sequence of
 // * classifying the message to obtain and intent and entities
-// * interpreting the intents and entities into a structured representation of the offer
-// * determining (through self-policing) whether rules permit a response to the offer
+// * interpreting the intents and entities into a structured representation of the message
+// * determining (through self-policing) whether rules permit a response to the message
 // * generating a bid (or other negotiation act) in response to the offer
 
-function processOffer(message) {
-  logExpression("In processOffer, message is: ", 2);
+function processMessage(message) {
+  logExpression("In processMessage, message is: ", 2);
   logExpression(message, 2);
   return classifyMessage(message)
-  .then(response => {
-    response.environmentUUID = message.environmentUUIID;
-    logExpression("Response from classify message: ", 2);
-    logExpression(response, 2);
-    return interpretMessage(response);
+  .then(classification => {
+    classification.environmentUUID = message.environmentUUIID;
+    logExpression("Classification from classify message: ", 2);
+    logExpression(classification, 2);
+    return interpretMessage(classification);
   })
-  .then(receivedOffer => {
-    logExpression("Interpretation of received offer: ", 2);
-    logExpression(receivedOffer, 2);
-    if(mayIRespond(receivedOffer)) {
-
-      if(!bidHistory[message.speaker]) bidHistory[message.speaker] = [];
-      bidHistory[message.speaker].push(receivedOffer);
-
-      let bid = generateBid(receivedOffer);
-      logExpression("Proposed bid is: ", 2);
-      logExpression(bid, 2);
-
-      bidHistory[message.speaker].push(bid);
-      if (bid.type == 'Accept' || bid.type == 'Reject') { // If offer is accepted or rejected, wipe out the bidHistory with this particular negotiation partner
-        bidHistory[message.speaker] = null;
+  .then(interpretation => {
+    if(message.speaker == agentName) { // Message was from me. This verifies that a message I sent earlier was allowed by the system; record as such.
+      logExpression("This message is from me! I'm not going to talk to myself.", 2);
+      if (interpretation.type == 'AcceptOffer' || interpretation.type == 'RejectOffer') { // If offer is accepted or rejected, wipe out the bidHistory with this particular negotiation partner
+          bidHistory[message.addressee] = null;
       }
-
-      let bidResponse = {
-        text: translateBid(bid),
+      else {
+        if(bidHistory[message.addressee]) {
+          bidHistory[message.addressee].push(interpretation);
+        }
+      }
+    }
+    else { // Message was not from me; continue to process
+      logExpression("Interpretation of message: ", 2);
+      logExpression(interpretation, 2);
+      let messageResponse = {
+        text: "",
         speaker: agentName,
         role: "seller",
-        addressee: "Human",
-        environmentUUID: receivedOffer.metadata.environmentUUID,
+        addressee: message.speaker,
+        environmentUUID: interpretation.metadata.environmentUUID,
         timeStamp: new Date()
       };
-      bidResponse.bid = bid;
-
-      return bidResponse;
-    }
-    else {
-      return null;
+      if(interpretation.type == "AcceptOffer") {
+        logExpression("The buyer " + message.speaker + " accepted my offer.", 2);
+        logExpression(bidHistory, 2);
+        if(bidHistory[message.speaker] && bidHistory[message.speaker].length) {
+          let bidHistoryIndividual = bidHistory[message.speaker].filter(bid =>
+            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
+          );
+          if (bidHistoryIndividual.length) {
+            logExpression(bidHistoryIndividual, 2);
+            let acceptedBid = bidHistoryIndividual[bidHistoryIndividual.length - 1];
+            logExpression(acceptedBid, 2);
+            bid = {
+              price: acceptedBid.price,
+              quantity: acceptedBid.quantity,
+              type: "Accept"
+            };
+            logExpression(bid, 2);
+            messageResponse.text = translateBid(bid, true);
+            messageResponse.bid = bid;
+            bidHistory[message.speaker] = null;
+          }
+          else {
+            messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
+          }
+        }
+        else {
+          messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
+        }            
+        return messageResponse;
+      }
+      else if (interpretation.type == "RejectOffer") {
+        logExpression("My offer was rejected!", 2);
+        logExpression(bidHistory, 2);
+        if(bidHistory[message.speaker] && bidHistory[message.speaker].length) {
+          let bidHistoryIndividual = bidHistory[message.speaker].filter(bid =>
+            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
+          );
+          if (bidHistoryIndividual.length) {
+            messageResponse.text = "I'm sorry you rejected my bid. I hope we can do business in the near future.";
+            bidHistory[message.speaker] = null;
+          }
+          else {
+            messageResponse.text = "There must be some confusion; I'm not aware of any outstanding offers.";
+          }
+        }
+        else {
+          messageResponse.text = "OK, but I didn't think we had any outstanding offers.";
+        }            
+        return messageResponse;
+      }
+      else if (interpretation.type == "Information") {
+        logExpression("This is an informational message.", 2);
+        let messageResponse = {
+          text: "OK. Thanks for letting me know.",
+          speaker: agentName,
+          role: "seller",
+          addressee: message.speaker,
+          environmentUUID: interpretation.metadata.environmentUUID,
+          timeStamp: new Date()
+        };
+        return messageResponse;
+      }
+      else if(mayIRespond(interpretation)) {
+  
+        if(!bidHistory[message.speaker]) bidHistory[message.speaker] = [];
+        bidHistory[message.speaker].push(interpretation);
+  
+        let bid = generateBid(interpretation);
+        logExpression("Proposed bid is: ", 2);
+        logExpression(bid, 2);
+  
+        let bidResponse = {
+          text: translateBid(bid, false),
+          speaker: agentName,
+          role: "seller",
+          addressee: message.speaker,
+          environmentUUID: interpretation.metadata.environmentUUID,
+          timeStamp: new Date()
+        };
+        bidResponse.bid = bid;
+  
+        return bidResponse;
+      }
+      else {
+        return null;
+      }
     }
   })
   .catch(error => {
-    logExpression("Encountered error in processOffer: ", 1);
+    logExpression("Encountered error in processMessage: ", 1);
     logExpression(error, 1);
     return Promise.resolve(null);
   });
