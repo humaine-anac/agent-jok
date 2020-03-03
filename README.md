@@ -3,6 +3,7 @@ This is a simple sample negotiation agent that works with the HUMAINE negotiatin
 
 - A simple agent against which others may be tested
 - A simple code example upon which more sophisticated negotiation agents can be based
+- An example of how to use Watson Assistant to help interpret English into a structured bid representation
 
 How to install the HUMAINE negotiation agent
 ----
