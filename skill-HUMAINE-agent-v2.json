@@ -4,15 +4,6 @@
       "intent": "RejectOffer",
       "examples": [
         {
-          "text": "No deal."
-        },
-        {
-          "text": "That's not good enough"
-        },
-        {
-          "text": "Forget it."
-        },
-        {
           "text": "Forget about it."
         },
         {
@@ -25,7 +16,16 @@
           "text": "No, forget about it."
         },
         {
+          "text": "No deal."
+        },
+        {
+          "text": "That's not good enough"
+        },
+        {
           "text": "I reject your offer"
+        },
+        {
+          "text": "Forget it."
         }
       ],
       "description": "Offer rejection"
@@ -34,12 +34,6 @@
       "intent": "Information",
       "examples": [
         {
-          "text": "I'm sorry. I was ready to make a deal, but apparently you don't have enough money left."
-        },
-        {
-          "text": "I was ready to make a deal, but apparently you don't have enough money left."
-        },
-        {
           "text": "I hear that you don't have enough money to cover your offer, so I'm withdrawing my acceptance."
         },
         {
@@ -47,6 +41,12 @@
         },
         {
           "text": "You don't have enough budget left"
+        },
+        {
+          "text": "I'm sorry. I was ready to make a deal, but apparently you don't have enough money left."
+        },
+        {
+          "text": "I was ready to make a deal, but apparently you don't have enough money left."
         }
       ],
       "description": "Informational messages that contain no direct negotiation content"
@@ -74,6 +74,18 @@
         },
         {
           "text": "You got it."
+        },
+        {
+          "text": "You've got a deal!"
+        },
+        {
+          "text": "You've got it!"
+        },
+        {
+          "text": "You've got a deal. I'll sell you @sys-number @good"
+        },
+        {
+          "text": "You've got a deal! I'll sell you @sys-number @good, @sys-number @good, @sys-number @good"
         }
       ],
       "description": "Offer acceptance"
