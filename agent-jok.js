@@ -503,7 +503,7 @@ function processMessage(message) {
         }
       }
     }
-    else { // Message was not from me; continue to process
+    else if (message.addressee == agentName && message.role == "buyer") { // Message was not from me, but it was addressed to me by a buyer; continue to process
       logExpression("Interpretation of message: ", 2);
       logExpression(interpretation, 2);
       let messageResponse = {
@@ -575,6 +575,10 @@ function processMessage(message) {
           timeStamp: new Date()
         };
         return messageResponse;
+      }
+      else if (interpretation.type == "NotUnderstood") {
+        logExpression("I didn't understand this message; pretend it never happened.", 2);
+        return null;
       }
       else if(mayIRespond(interpretation)) {
   
