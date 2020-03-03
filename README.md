@@ -18,13 +18,11 @@ cp assistantParams.json.template assistantParams.json
 npm install
 ```
 
-For this particular sample agent, you need a Watson Assistant instance and an associated skill.
-*For general audiences, we need to add some instructions for accessing Watson Assistant, creating agents and skills, etc. Can 
-someone on the RPI side do this, as I'm not sure the procedures for doing these things from within IBM are exactly the same.*
+For this particular sample agent, you need a Watson Assistant instance and an associated skill. You can visit this site to set up a free account: https://cloud.ibm.com/registration?target=/developer/watson/launch-tool/conversation&hideTours=true&cm_sp=WatsonPlatform-WatsonPlatform-_-OnPageNavCTA-IBMWatson_Conversation-_-Watson_Developer_Website&cm_mmca1=000027BD. This will guide you through the process of setting up an account, and creating a Watson Assistant. You will need to create a skill to associate with your Watson Assistant instance.
 
-If the skill does not already exist, the json for it can be found in the file `skill-HUMAINE-agent-v2.json`. Upload this json file to create your skill.
+To do that, upload the file `skill-HUMAINE-agent-v2.json`, which is in this repository.
 
-Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant skill.
+Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant instance that you created.
 
 Finally, to instantiate the agent, execute
 ```sh
