@@ -456,7 +456,8 @@ function generateBid(offer) {
 function generateSellPrice(bundleCost, offerPrice, myLastPrice, timeRemaining) {
   logExpression("Entered generateSellPrice.", 2);
   logExpression("bundleCost: " + bundleCost, 2);
-  logExpression("offerPrice: " + offerPrice, 2);
+  logExpression("offerPrice: ", 2);
+  logExpression(offerPrice, 2);
   logExpression("myLastPrice: " + myLastPrice, 2);
   logExpression("timeRemaining: " + timeRemaining, 2);
   let minMarkupRatio;
@@ -469,15 +470,22 @@ function generateSellPrice(bundleCost, offerPrice, myLastPrice, timeRemaining) {
     maxMarkupRatio = 2.0 - 1.5 * (1.0 - timeRemaining/negotiationState.roundDuration); // Linearly decrease max markup ratio towards just 0.5 at the conclusion of the round
   }
   minMarkupRatio = Math.max(markupRatio, 0.20);
+  
+  logExpression("Min and max markup ratios are: " + minMarkupRatio + " and " + maxMarkupRatio + ".", 2);
 
   let minProposedMarkup = Math.max(minMarkupRatio, markupRatio);
   let newMarkupRatio = minProposedMarkup + Math.random() * (maxMarkupRatio - minProposedMarkup);
+  
+  logExpression("newMarkupRatio: " + newMarkupRatio, 2);
 
   let price = {
     unit: offerPrice.unit,
     value: (1.0 + newMarkupRatio) * bundleCost
   };
   price.value = quantize(price.value, 2);
+  
+  logExpression("Returning price: ", 2);
+  logExpression(price, 2);
   return price;
 }
 
