@@ -1,11 +1,17 @@
 const {classifyMessage} = require('./conversation.js');
 const {setLogLevel, logExpression} = require('@cisl/zepto-logger');
+// logExpression is like console.log, but it also
+//   * outputs a timestamp
+//   * first argument takes text or JSON and handles it appropriately
+//   * second numeric argument establishes the logging priority: 1: high, 2: moderate, 3: low
+//   * logging priority n is set by -level n option on command line when agent-jok is started
 
-let logLevel = 1;
+let logLevel = 1; // default log level
 setLogLevel(logLevel);
 
 // From the intents and entities obtained from Watson Assistant, extract a structured representation
 // of the message
+
 function interpretMessage(watsonResponse) {
   logExpression("In interpretMessage, watsonResponse is: ", 2);
   logExpression(watsonResponse, 2);
@@ -56,14 +62,20 @@ function interpretMessage(watsonResponse) {
     };
   }
   if(cmd) {
-    cmd.metadata = watsonResponse.input;
-    cmd.metadata.addressee = watsonResponse.input.addressee || extractAddressee(entities); // Expect the addressee to be provided, but extract it if necessary
+    cmd.metadata = JSON.parse(JSON.stringify(watsonResponse.input));
+    if(!cmd.metadata.addressee || cmd.metadata.addressee.length == 0) {
+      cmd.metadata.addressee = extractAddressee(entities); // Expect the addressee to be provided, but extract it if necessary
+    }
     cmd.metadata.timeStamp = new Date();
   }
+  logExpression("Returning from interpretMessage with cmd: ", 2);
+  logExpression(cmd, 2);
   return cmd;
 }
 
+
 // Extract the addressee from entities (in case addressee is not already supplied with the input message)
+
 function extractAddressee(entities) {
   let addressees = [];
   let addressee = null;
@@ -74,12 +86,13 @@ function extractAddressee(entities) {
   });
   logExpression("Found addressees: ", 2);
   logExpression(addressees, 2);
-  if(addressees.includes(agentName)) addressee = agentName;
-  else addressee = addressees[0];
+  addressee = addressees[0];
   return addressee;
 }
 
+
 // Extract goods and their amounts from the entities extracted by Watson Assistant
+
 function extractOfferFromEntities(entityList) {
   let entities = JSON.parse(JSON.stringify(entityList));
   let removedIndices = [];
@@ -109,7 +122,9 @@ function extractOfferFromEntities(entityList) {
   };
 }
 
+
 // Extract price from entities extracted by Watson Assistant
+
 function extractPrice(entities) {
   let price = null;
   entities.forEach(eBlock => {
@@ -129,12 +144,15 @@ function extractPrice(entities) {
   return price;
 }
 
+
+// Extract bid from message sent by another agent, a human, or myself
+
 function extractBidFromMessage(message) {
   logExpression("In processOffer, message is: ", 2);
   logExpression(message, 2);
   return classifyMessage(message)
   .then(response => {
-    response.environmentUUID = message.environmentUUIID;
+    response.environmentUUID = message.environmentUUID;
     logExpression("Response from classify message: ", 2);
     logExpression(response, 2);
     return interpretMessage(response);
@@ -149,6 +167,8 @@ function extractBidFromMessage(message) {
   });
 }
 
+
+// Export these functions
 
 exports = module.exports = {
   interpretMessage,

@@ -142,6 +142,30 @@
           "text": "Is anyone selling @good"
         },
         {
+          "text": "@avatarName I want some @good"
+        },
+        {
+          "text": "@avatarName I want to buy some @good"
+        },
+        {
+          "text": "@avatarName I want to buy @good and @good"
+        },
+        {
+          "text": "@avatarName I want to buy @sys-number @good"
+        },
+        {
+          "text": "@avatarName I want @sys-number @good"
+        },
+        {
+          "text": "@avatarName I would like @sys-number @good and @sys-number @good"
+        },
+        {
+          "text": "@avatarName I want @good"
+        },
+        {
+          "text": "@avatarName I want @sys-number @good and @sys-number @good"
+        },
+        {
           "text": "I will give you @sys-currency for @sys-number @good"
         },
         {

@@ -6,6 +6,11 @@ const http = require('http');
 const express = require('express');
 let request = require('request-promise');
 const { logExpression, setLogLevel } = require('@cisl/zepto-logger');
+// logExpression is like console.log, but it also
+//   * outputs a timestamp
+//   * first argument takes text or JSON and handles it appropriately
+//   * second numeric argument establishes the logging priority: 1: high, 2: moderate, 3: low
+//   * logging priority n is set by -level n option on command line when agent-jok is started
 
 let methodOverride = require('method-override');
 let bodyParser = require('body-parser');
@@ -16,7 +21,6 @@ const {extractBidFromMessage, interpretMessage} = require('./extract-bid.js');
 let myPort = appSettings.defaultPort || 14007;
 let agentName = appSettings.name || "Agent007";
 
-let logLevel = 1;
 const defaultRole = 'buyer';
 const defaultSpeaker = 'Jeff';
 const defaultEnvironmentUUID = 'abcdefg';
@@ -47,6 +51,7 @@ let negotiationState = {
   "roundDuration": defaultRoundDuration
 };
 
+let logLevel = 1;
 process.argv.forEach((val, index, array) => {
   if (val === '-port') {
     myPort = array[index + 1];
@@ -66,11 +71,163 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(methodOverride());
 
-const getSafe = (p, o, d) =>
-  p.reduce((xs, x) => (xs && xs[x] != null && xs[x] != undefined) ? xs[x] : d, o);
-
 let utilityInfo = null;
 let bidHistory;
+
+
+// ************************************************************************************************************ //
+// REQUIRED APIs
+// ************************************************************************************************************ //
+
+// API route that receives utility information from the environment orchestrator. This also
+// triggers the start of a round and the associated timer.
+app.post('/setUtility', (req, res) => {
+  logExpression("Inside setUtility (POST).", 2);
+  if(req.body) {
+    utilityInfo = req.body;
+    logExpression("Received utilityInfo: ", 2);
+    logExpression(utilityInfo, 2);
+    agentName = utilityInfo.name || agentName;
+    logExpression("agentName: " + agentName, 2);
+    let msg = {"status": "Acknowledged", "utility": utilityInfo};
+    logExpression(msg, 2);
+    res.json(msg);
+  }
+  else {
+    let msg = {"status": "Failed; no message body", "utility": null};
+    logExpression(msg, 2);
+    res.json(msg);
+  }
+});
+
+// API route that tells the agent that the round has started.
+app.post('/startRound', (req, res) => {
+  logExpression("Inside startRound (POST).", 2);
+  bidHistory = {};
+  if(req.body) {
+    negotiationState.roundDuration = req.body.roundDuration || negotiationState.roundDuration;
+    negotiationState.roundNumber = req.body.roundNumber || negotiationState.roundNumber;
+  }
+  negotiationState.active = true;
+  negotiationState.startTime = new Date();
+  negotiationState.stopTime = new Date(negotiationState.startTime.getTime() + 1000 * negotiationState.roundDuration);
+  logExpression("Negotiation state is: ", 2);
+  logExpression(negotiationState, 2);
+  let msg = {"status": "Acknowledged"};
+  res.json(msg);
+});
+
+// API route that tells the agent that the round has ended.
+app.post('/endRound', (req, res) => {
+  logExpression("Inside endRound (POST).", 2);
+  negotiationState.active = false;
+  negotiationState.endTime = new Date();
+  logExpression("Negotiation state is: ", 2);
+  logExpression(negotiationState, 2);
+  let msg = {"status": "Acknowledged"};
+  res.json(msg);
+});
+
+// POST API that receives a message, interprets it, decides how to respond (e.g. Accept, Reject, or counteroffer),
+// and if it desires sends a separate message to the /receiveMessage route of the environment orchestrator
+app.post('/receiveMessage', (req, res) => {
+  logExpression("Inside receiveMessage (POST).", 2);
+  let timeRemaining = ((new Date(negotiationState.stopTime)).getTime() - (new Date()).getTime())/ 1000.0;
+  logExpression("Remaining time: " + timeRemaining, 2);
+  logExpression("Negotiation state: " + negotiationState.active, 2);
+  logExpression("POSTed body: ", 2);
+  logExpression(req.body, 2);
+  if(timeRemaining <= 0) negotiationState.active = false;
+
+  let response = null;
+
+  if(!req.body) {
+    response = {
+      "status": "Failed; no message body"
+    };
+  }
+  else if(negotiationState.active) { // We received a message and time remains in the round.
+    let message = req.body;
+    message.speaker = message.speaker || defaultSpeaker;
+    message.addressee = message.addressee;
+    message.role = message.role || message.defaultRole;
+    message.environmentUUID = message.environmentUUID || defaultEnvironmentUUID;
+    response = { // Acknowledge receipt of message from the environment orchestrator
+      status: "Acknowledged",
+      interpretation: message
+    };
+    logExpression("Message is: ", 2);
+    logExpression(message, 2);
+    
+    processMessage(message)
+    .then(bidMessage => {
+      logExpression("Bid message is: ", 2);
+      logExpression(bidMessage, 2);
+      if(bidMessage) { // If warranted, proactively send a new negotiation message to the environment orchestrator
+        sendMessage(bidMessage);
+      }
+    })
+    .catch(error => {
+      logExpression("Did not send message; encountered error: ", 1);
+      logExpression(error, 1);
+    });
+  }
+  else { // Either there's no body or the round is over.
+    response = {
+      status: "Failed; round not active"
+    };
+  }
+  res.json(response);
+});
+
+// POST API that receives a rejection message, and decides how to respond to it. If the rejection is based upon
+// insufficient funds on the part of the buyer, generate an informational message to send back to the human, as a courtesy
+// (or rather to explain why we are not able to confirm acceptance of an offer).
+app.post('/receiveRejection', (req, res) => {
+  logExpression("Inside receiveRejection (POST).", 2);
+  let timeRemaining = ((new Date(negotiationState.stopTime)).getTime() - (new Date()).getTime())/ 1000.0;
+  logExpression("Remaining time: " + timeRemaining, 2);
+  logExpression("POSTed body: ", 2);
+  logExpression(req.body, 2);
+  if(timeRemaining <= 0) negotiationState.active = false;
+  let response = null;
+  if(!req.body) {
+    response = {
+      "status": "Failed; no message body"
+    };
+  }
+  else if(negotiationState.active) { // We received a message and time remains in the round.
+    let message = req.body;
+    logExpression("Rejected message is: ", 2);
+    logExpression(message, 2);
+    response = { // Acknowledge receipt of message from the environment orchestrator
+      status: "Acknowledged",
+      message
+    };
+    if(message.rationale &&
+       message.rationale == "Insufficient budget" &&
+       message.bid &&
+       message.bid.type == "Accept") { // We tried to respond with an accept, but were rejected. So that the buyer will not interpret our apparent silence as rudeness, explain to the Human that he/she were rejected due to insufficient budget.
+      let msg2 = JSON.parse(JSON.stringify(message));
+      delete msg2.rationale;
+      delete msg2.bid;
+      msg2.timestamp = new Date();
+      msg2.text = "I'm sorry, " + msg2.addressee + ". I was ready to make a deal, but apparently you don't have enough money left.";
+      sendMessage(msg2);
+    }
+  } else { // Either there's no body or the round is over.
+    response = {
+      status: "Failed; round not active"
+    };
+  }
+  res.json(response);
+});
+
+
+// ************************************************************************************************************ //
+// Non-required APIs (useful for unit testing)
+// ************************************************************************************************************ //
+
 
 // GET API route that simply calls Watson Assistant on the supplied text message to obtain intent and entities
 app.get('/classifyMessage', (req, res) => {
@@ -121,28 +278,9 @@ app.post('/classifyMessage', (req, res) => {
   }
 });
 
-// POST API route that simply calls Watson Assistant on the supplied text message to obtain intents and entities
-// Assumes an input message of the form
-// {
-//  "text": "How about if I buy 5 egg for 3.42 USD.",
-//  "speaker": "Human",
-//  "role": "buyer",
-//  "addressee": "Watson",
-//  "environmentUUID": "abcdefg",
-//  "timeStamp": "2020-02-21T16:07:31.159Z"
-//}
-// and outputs a bid of the form
-//{
-//  "type": "BuyOffer",
-//  "price": {
-//    "value": 3.42,
-//    "unit": "USD"
-//  },
-//  "quantity": {
-//    "egg": 5
-//  }
-//}
-
+// POST API route that is similar to /classify Message, but takes the further
+// step of determining the type and parameters of the message (if it is a negotiation act),
+// and formatting this information in the form of a structured bid.
 app.post('/extractBid', (req, res) => {
   logExpression("Inside extractBid (POST).", 2);
   if(req.body) {
@@ -167,148 +305,6 @@ app.post('/extractBid', (req, res) => {
   }
 });
 
-// POST API that receives a message, interprets it, decides how to respond (e.g. Accept, Reject, or counteroffer),
-// and if it desires sends a separate message to the /receiveMessage route of the environment orchestrator
-app.post('/receiveMessage', (req, res) => {
-  logExpression("Inside receiveMessage (POST).", 2);
-  let timeRemaining = ((new Date(negotiationState.stopTime)).getTime() - (new Date()).getTime())/ 1000.0;
-  logExpression("Remaining time: " + timeRemaining, 2);
-  logExpression("POSTed body: ", 2);
-  logExpression(req.body, 2);
-  if(timeRemaining <= 0) negotiationState.active = false;
-
-  let response = null;
-
-  if(!req.body) {
-    response = {
-      "status": "Failed; no message body"
-    };
-  }
-  else if(negotiationState.active) { // We received a message and time remains in the round.
-    let message = req.body;
-    message.speaker = message.speaker || defaultSpeaker;
-    message.addressee = message.addressee;
-    message.role = message.role || message.defaultRole;
-    message.environmentUUID = message.environmentUUID || defaultEnvironmentUUID;
-    response = { // Acknowledge receipt of message from the environment orchestrator
-      status: "Acknowledged",
-      interpretation: message
-    };
-    logExpression("Message is: ", 2);
-    logExpression(message, 2);
-    
-    processMessage(message)
-    .then(bidMessage => {
-      logExpression("Bid message is: ", 2);
-      logExpression(bidMessage, 2);
-      if(bidMessage) { // If warranted, proactively send a new negotiation message to the environment orchestrator
-        sendMessage(bidMessage);
-      }
-    })
-    .catch(error => {
-      logExpression("Did not send message; encountered error: ", 1);
-      logExpression(error, 1);
-    });
-  }
-  else { // Either there's no body or the round is over.
-    response = {
-      status: "Failed; round not active"
-    };
-  }
-  res.json(response);
-});
-
-// POST API that receives a message, interprets it, decides how to respond (e.g. Accept, Reject, or counteroffer),
-// and if it desires sends a separate message to the /receiveMessage route of the environment orchestrator
-app.post('/receiveRejection', (req, res) => {
-  logExpression("Inside receiveRejection (POST).", 2);
-  let timeRemaining = ((new Date(negotiationState.stopTime)).getTime() - (new Date()).getTime())/ 1000.0;
-  logExpression("Remaining time: " + timeRemaining, 2);
-  logExpression("POSTed body: ", 2);
-  logExpression(req.body, 2);
-  if(timeRemaining <= 0) negotiationState.active = false;
-  let response = null;
-  if(!req.body) {
-    response = {
-      "status": "Failed; no message body"
-    };
-  }
-  else if(negotiationState.active) { // We received a message and time remains in the round.
-    let message = req.body;
-    logExpression("Rejected message is: ", 2);
-    logExpression(message, 2);
-    response = { // Acknowledge receipt of message from the environment orchestrator
-      status: "Acknowledged",
-      message
-    };
-    if(message.rationale &&
-       message.rationale == "Insufficient budget" &&
-       message.bid &&
-       message.bid.type == "Accept") { // We tried to respond with an accept, but were rejected. So that the buyer will not interpret our apparent silence as rudeness, explain to the Human that he/she were rejected due to insufficient budget.
-      let msg2 = JSON.parse(JSON.stringify(message));
-      delete msg2.rationale;
-      delete msg2.bid;
-      msg2.timestamp = new Date();
-      msg2.text = "I'm sorry, " + msg2.addressee + ". I was ready to make a deal, but apparently you don't have enough money left.";
-      sendMessage(msg2);
-    }
-  } else { // Either there's no body or the round is over.
-    response = {
-      status: "Failed; round not active"
-    };
-  }
-  res.json(response);
-});
-
-// API route that receives utility information from the environment orchestrator. This also
-// triggers the start of a round and the associated timer (which expires after 10 minutes).
-app.post('/setUtility', (req, res) => {
-  logExpression("Inside setUtility (POST).", 2);
-  if(req.body) {
-    utilityInfo = req.body;
-    logExpression("Received utilityInfo: ", 2);
-    logExpression(utilityInfo, 2);
-    agentName = utilityInfo.name || agentName;
-    logExpression("agentName: " + agentName, 2);
-    let msg = {"status": "Acknowledged", "utility": utilityInfo};
-    logExpression(msg, 2);
-    res.json(msg);
-  }
-  else {
-    let msg = {"status": "Failed; no message body", "utility": null};
-    logExpression(msg, 2);
-    res.json(msg);
-  }
-});
-
-// API route that tells the agent that the round has started.
-app.post('/startRound', (req, res) => {
-  logExpression("Inside startRound (POST).", 2);
-  bidHistory = {};
-  if(req.body) {
-    negotiationState.roundDuration = req.body.roundDuration || negotiationState.roundDuration;
-    negotiationState.roundNumber = req.body.roundNumber || negotiationState.roundNumber;
-  }
-  negotiationState.active = true;
-  negotiationState.startTime = new Date();
-  negotiationState.stopTime = new Date(negotiationState.startTime.getTime() + 1000 * negotiationState.roundDuration);
-  logExpression("negotiation state is: ", 2);
-  logExpression(negotiationState, 2);
-  let msg = {"status": "Acknowledged"};
-  res.json(msg);
-});
-
-// API route that tells the agent that the round has ended.
-app.post('/endRound', (req, res) => {
-  logExpression("Inside endRound (POST).", 2);
-  negotiationState.active = false;
-  negotiationState.endTime = new Date();
-  logExpression("negotiation state is: ", 2);
-  logExpression(negotiationState, 2);
-  let msg = {"status": "Acknowledged"};
-  res.json(msg);
-});
-
 // API route that reports the current utility information.
 app.get('/reportUtility', (req, res) => {
   logExpression("Inside reportUtility (GET).", 2);
@@ -320,35 +316,57 @@ app.get('/reportUtility', (req, res) => {
   }
 });
 
+// Set up the server in the standard Node.js way
 http.createServer(app).listen(app.get('port'), () => {
   logExpression('Express server listening on port ' + app.get('port'), 2);
 });
 
 
-// Self-censor messages that shouldn't be responded to, either because the received offer has the wrong role
-// or because this agent is not the one being addressed.
+// ******************************************************************************************************* //
+// ******************************************************************************************************* //
+//                                               Functions
+// ******************************************************************************************************* //
+// ******************************************************************************************************* //
+
+
+// ******************************************************************************************************* //
+//                                         Bidding Algorithm Functions                                     //
+// ******************************************************************************************************* //
+
+
+// *** mayIRespond()                 
+// Choose not to respond to certain messages, either because the received offer has the wrong role
+// or because a different agent is being addressed. Note that this self-censoring is stricter than that required
+// by competition rules, i.e. this agent is not trying to steal a deal despite this being permitted under the
+// right circumstances. You can do better than this!
+
 function mayIRespond(interpretation) {
-  return (interpretation && interpretation.metadata.role == "buyer" && interpretation.metadata.addressee == agentName);
+  return (interpretation &&
+          interpretation.metadata.role == "buyer" &&
+          (interpretation.metadata.addressee == agentName ||
+           !interpretation.metadata.addressee));
 }
 
-// Send specified message to the /receiveMessage route of the environment orchestrator
-function sendMessage(message) {
-  logExpression("Sending message to environment orchestrator: ", 2);
-  logExpression(message, 2);
-  return postDataToServiceType(message, 'environment-orchestrator', '/relayMessage');
-}
 
+// *** calculateUtilitySeller() 
 // Calculate utility for a given bundle of goods and price, given the utility function
-function calculateUtilityAgent(utilityInfo, bundle) {
-  logExpression("In calculateUtilityAgent, utilityParams and bundle are: ", 2);
+
+function calculateUtilitySeller(utilityInfo, bundle) {
+  logExpression("In calculateUtilitySeller, utilityParams and bundle are: ", 2);
   let utilityParams = utilityInfo.utility;
   logExpression(utilityParams, 2);
   logExpression(bundle, 2);
 
   let util = 0;
-  if(bundle.price && bundle.price.value && bundle.quantity) {
-    util = bundle.price.value;
-    if(bundle.price.unit == utilityInfo.currencyUnit) {
+  let price = getSafe(['price', 'value'], bundle, 0);
+  logExpression("Extracted price from bundle: " + price, 2);
+  if(bundle.quantity) {
+    util = price;
+    unit = getSafe(['price', 'unit'], bundle, null);
+    if(!unit) { // Check units -- not really used, but a good practice in case we want to support currency conversion some day
+      logExpression("No currency units provided.", 2);
+    }
+    else if(unit == utilityInfo.currencyUnit) {
       logExpression("Currency units match.", 2);
     }
     else {
@@ -359,16 +377,20 @@ function calculateUtilityAgent(utilityInfo, bundle) {
       util -= utilityParams[good].parameters.unitcost * bundle.quantity[good];
     });
   }
+  logExpression("About to return utility: " + util, 2);
   return util;
 }
 
+
+// *** generateBid()
 // Given a received offer and some very recent prior bidding history, generate a bid
 // including the type (Accept, Reject, and the terms (bundle and price).
+
 function generateBid(offer) {
   logExpression("In generateBid, offer is: ", 2);
   logExpression(offer, 2);
-  logExpression("bid history is currently: ", 2);
-  logExpression(bidHistory, 2);
+  logExpression("bid history is currently: ", 3);
+  logExpression(bidHistory, 3);
   let minDicker = 0.10;
   let buyerName = offer.metadata.speaker;
   let myRecentOffers = bidHistory[buyerName].filter(bidBlock => {
@@ -382,42 +404,61 @@ function generateBid(offer) {
     logExpression("My most recent price offer was " + myLastPrice, 2);
   }
   let timeRemaining = ((new Date(negotiationState.stopTime)).getTime() - (new Date()).getTime())/ 1000.0;
-  logExpression("There are " + timeRemaining + " seconds remaining in this round.", 2);
+  logExpression("There are " + timeRemaining + " seconds remaining in this round.", 3);
 
-  let utility = calculateUtilityAgent(utilityInfo, offer);
-  logExpression("From calculateUtilityAgent, utility of offer is computed to be: " + utility, 2);
+  let utility = calculateUtilitySeller(utilityInfo, offer);
+  logExpression("From calculateUtilitySeller, utility of offer is computed to be: " + utility, 2);
 
-  let bundleCost = offer.price.value - utility;
-
-  let markupRatio = utility / bundleCost;
-
-  let bid = {
-    quantity: offer.quantity
-  };
-  if (markupRatio > 2.0 || (myLastPrice != null && Math.abs(offer.price - myLastPrice) < minDicker)) {
-    bid.type = 'Accept';
-    bid.price = offer.price;
-  }
-  else if (markupRatio < -0.5) {
-    bid.type = 'Reject';
-    bid.price = null;
-  }
-  else {
-    bid.type = 'SellOffer';
-    bid.price = generateSellPrice(bundleCost, offer.price, myLastPrice, timeRemaining);
-    if(bid.price.value < offer.price.value + minDicker) {
+// Note that we are making no effort to upsell the buyer on a different package of goods than what they requested.
+// It would be legal to do so, and perhaps profitable in some situations -- consider doing that!
+  let bid = {quantity: offer.quantity};  
+  
+  if(offer.price && offer.price.value) { // The buyer included a proposed price, which we must take into account
+    let bundleCost = offer.price.value - utility;
+  
+    let markupRatio = utility / bundleCost;
+  
+    if (markupRatio > 2.0 || (myLastPrice != null && Math.abs(offer.price - myLastPrice) < minDicker)) { // If our markup is large, accept the offer
       bid.type = 'Accept';
       bid.price = offer.price;
     }
+    else if (markupRatio < -0.5) { // If buyer's offer is substantially below our cost, reject their offer
+      bid.type = 'Reject';
+      bid.price = null;
+    }
+    else { // If buyer's offer is in a range where an agreement seems possible, generate a counteroffer
+      bid.type = 'SellOffer';
+      bid.price = generateSellPrice(bundleCost, offer.price, myLastPrice, timeRemaining);
+      if(bid.price.value < offer.price.value + minDicker) {
+        bid.type = 'Accept';
+        bid.price = offer.price;
+      }
+    }
+  }
+  else { // The buyer didn't include a proposed price, leaving us free to consider how much to charge.
+    // Set markup between 2 and 3 times the cost of the bundle and generate price accordingly.
+    let markupRatio = 2.0 + Math.random();
+    bid.type = 'SellOffer';
+    bid.price = {
+      unit: utilityInfo.currencyUnit,
+      value: quantize((1.0 - markupRatio) * utility, 2)
+    };
   }
   logExpression("About to return from generateBid with bid: ", 2);
   logExpression(bid, 2);
   return bid;
 }
 
-// Generate a bid price
+
+// *** generateSellPrice()
+// Generate a bid price that is sensitive to cost, negotiation history with this buyer, and time remaining in round
+
 function generateSellPrice(bundleCost, offerPrice, myLastPrice, timeRemaining) {
   logExpression("Entered generateSellPrice.", 2);
+  logExpression("bundleCost: " + bundleCost, 2);
+  logExpression("offerPrice: " + offerPrice, 2);
+  logExpression("myLastPrice: " + myLastPrice, 2);
+  logExpression("timeRemaining: " + timeRemaining, 2);
   let minMarkupRatio;
   let maxMarkupRatio;
   let markupRatio = offerPrice.value/bundleCost - 1.0;
@@ -440,7 +481,200 @@ function generateSellPrice(bundleCost, offerPrice, myLastPrice, timeRemaining) {
   return price;
 }
 
+
+// *** processMessage() 
+// Orchestrate a sequence of
+// * classifying the message to obtain and intent and entities
+// * interpreting the intents and entities into a structured representation of the message
+// * determining (through self-policing) whether rules permit a response to the message
+// * generating a bid (or other negotiation act) in response to the offer
+
+function processMessage(message) {
+  logExpression("In processMessage, message is: ", 2);
+  logExpression(message, 2);
+  return classifyMessage(message)
+  .then(classification => {
+    classification.environmentUUID = message.environmentUUID;
+    logExpression("Classification from classify message: ", 2);
+    logExpression(classification, 2);
+    return interpretMessage(classification);
+  })
+  .then(interpretation => {
+    logExpression("interpretation is: ", 2);
+    logExpression(interpretation, 2);
+    let speaker = interpretation.metadata.speaker;
+    let addressee = interpretation.metadata.addressee;
+    let role = interpretation.metadata.role;
+    if(speaker == agentName) { // The message was from me; this means that the system allowed it to go through.
+      logExpression("This message is from me! I'm not going to talk to myself.", 2);
+      // If the message from me was an accept or reject, wipe out the bidHistory with this particular negotiation partner
+      // Otherwise, add the message to the bid history with this negotiation partner
+      if (interpretation.type == 'AcceptOffer' || interpretation.type == 'RejectOffer') { 
+          bidHistory[addressee] = null;
+      }
+      else {
+        if(bidHistory[addressee]) {
+          bidHistory[addressee].push(interpretation);
+        }
+      }
+    }
+    else if (addressee == agentName && role == "buyer") { // Message was addressed to me by a buyer; continue to process
+      logExpression("Interpretation of message: ", 2);
+      logExpression(interpretation, 2);
+      let messageResponse = {
+        text: "",
+        speaker: agentName,
+        role: "seller",
+        addressee: speaker,
+        environmentUUID: interpretation.metadata.environmentUUID,
+        timeStamp: new Date()
+      };
+      if(interpretation.type == "AcceptOffer") { // Buyer accepted my offer! Deal with it.
+        logExpression("The buyer " + speaker + " accepted my offer.", 2);
+        logExpression(bidHistory, 2);
+        if(bidHistory[speaker] && bidHistory[speaker].length) { // I actually did make an offer to this buyer; fetch details and confirm acceptance
+          let bidHistoryIndividual = bidHistory[speaker].filter(bid =>
+            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
+          );
+          if (bidHistoryIndividual.length) {
+            logExpression(bidHistoryIndividual, 2);
+            let acceptedBid = bidHistoryIndividual[bidHistoryIndividual.length - 1];
+            logExpression(acceptedBid, 2);
+            bid = {
+              price: acceptedBid.price,
+              quantity: acceptedBid.quantity,
+              type: "Accept"
+            };
+            logExpression(bid, 2);
+            messageResponse.text = translateBid(bid, true);
+            messageResponse.bid = bid;
+            bidHistory[speaker] = null;
+          }
+          else { // Didn't have any outstanding offers with this buyer
+            messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
+          }
+        }
+        else { // Didn't have any outstanding offers with this buyer
+          messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
+        }            
+        return messageResponse;
+      }
+      else if (interpretation.type == "RejectOffer") { // The buyer claims to be rejecting an offer I made; deal with it
+        logExpression("My offer was rejected!", 2);
+        logExpression(bidHistory, 2);
+        if(bidHistory[speaker] && bidHistory[speaker].length) { // Check whether I made an offer to this buyer
+          let bidHistoryIndividual = bidHistory[speaker].filter(bid =>
+            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
+          );
+          if (bidHistoryIndividual.length) {
+            messageResponse.text = "I'm sorry you rejected my bid. I hope we can do business in the near future.";
+            bidHistory[speaker] = null;
+          }
+          else {
+            messageResponse.text = "There must be some confusion; I'm not aware of any outstanding offers.";
+          }
+        }
+        else {
+          messageResponse.text = "OK, but I didn't think we had any outstanding offers.";
+        }            
+        return messageResponse;
+      }
+      else if (interpretation.type == "Information") { // The buyer is just sending an informational message. Reply politely without attempting to understand.
+        logExpression("This is an informational message.", 2);
+        let messageResponse = {
+          text: "OK. Thanks for letting me know.",
+          speaker: agentName,
+          role: "seller",
+          addressee: speaker,
+          environmentUUID: interpretation.metadata.environmentUUID,
+          timeStamp: new Date()
+        };
+        return messageResponse;
+      }
+      else if (interpretation.type == "NotUnderstood") { // The buyer said something, but we can't figure out what they meant. Just ignore them and hope they'll try again if it's important.
+        logExpression("I didn't understand this message; pretend it never happened.", 2);
+        return Promise.resolve(null);
+      }
+      else if((interpretation.type == "BuyOffer" ||
+               interpretation.type == "BuyRequest") &&
+              mayIRespond(interpretation)) { //The buyer evidently is making an offer or request; if permitted, generate a bid response
+  
+        if(!bidHistory[speaker]) bidHistory[speaker] = [];
+        bidHistory[speaker].push(interpretation);
+  
+        let bid = generateBid(interpretation); // Generate bid based on message interpretation, utility, and the current state of negotiation with the buyer
+        logExpression("Proposed bid is: ", 2);
+        logExpression(bid, 2);
+  
+        let bidResponse = {
+          text: translateBid(bid, false), // Translate the bid into English
+          speaker: agentName,
+          role: "seller",
+          addressee: speaker,
+          environmentUUID: interpretation.metadata.environmentUUID,
+          timeStamp: new Date()
+        };
+        bidResponse.bid = bid;
+  
+        return bidResponse;
+      }
+      else {
+        return Promise.resolve(null);
+      }
+    }
+    else if(role == buyer && addressee != agentName) { // Message was not addressed to me, but is a buyer. A more clever agent might try to steal the deal.
+      logExpression("The buyer " + speaker + " sent this message to another agent, " + addressee + ".", 2);
+      logExpression("I'm choosing not to do anything with this information.", 2);
+      logExpression(message, 2);
+      return Promise.resolve(null);      
+    }
+    else if(role == seller) { // Message was from another seller. A more clever agent might be able to exploit this info somehow!
+      logExpression("The other seller, " + speaker + ", sent this message: ", 2);
+      logExpression(message, 2);
+      return Promise.resolve(null);
+    }
+  })
+  .catch(error => {
+    logExpression("Encountered error in processMessage: ", 1);
+    logExpression(error, 1);
+    return Promise.resolve(null);
+  });
+}
+
+
+// ******************************************************************************************************* //
+//                                                     Simple Utilities                                    //
+// ******************************************************************************************************* //
+
+// *** quantize()
+// Quantize numeric quantity to desired number of decimal digits
+// Useful for making sure that bid prices don't get more fine-grained than cents
+function quantize(quantity, decimals) {
+  let multiplicator = Math.pow(10, decimals);
+  let q = parseFloat((quantity * multiplicator).toFixed(11));
+  return Math.round(q) / multiplicator;
+}
+
+
+// *** getSafe() 
+// Utility that retrieves a specified piece of a JSON structure safely.
+// o: the JSON structure from which a piece needs to be extracted, e.g. bundle
+// p: list specifying the desired part of the JSON structure, e.g.['price', 'value'] to retrieve bundle.price.value
+// d: default value, in case the desired part does not exist.
+
+function getSafe(p, o, d) {
+  return p.reduce((xs, x) => (xs && xs[x] != null && xs[x] != undefined) ? xs[x] : d, o);
+}
+
+
+// ******************************************************************************************************* //
+//                                                    Messaging                                            //
+// ******************************************************************************************************* //
+
+
+// *** translateBid()
 // Translate structured bid to text, with some randomization
+
 function translateBid(bid, confirm) {
   let text = "";
   if(bid.type == 'SellOffer') {
@@ -468,158 +702,29 @@ function translateBid(bid, confirm) {
   return text;
 }
 
+
+// *** selectMessage()
 // Randomly select a message or phrase from a specified set
+
 function selectMessage(messageSet) {
   let msgSetSize = messageSet.length;
   let indx = parseInt(Math.random() * msgSetSize);
   return messageSet[indx];
 }
 
-// Orchestrate a sequence of
-// * classifying the message to obtain and intent and entities
-// * interpreting the intents and entities into a structured representation of the message
-// * determining (through self-policing) whether rules permit a response to the message
-// * generating a bid (or other negotiation act) in response to the offer
 
-function processMessage(message) {
-  logExpression("In processMessage, message is: ", 2);
+// *** sendMessage()
+// Send specified message to the /receiveMessage route of the environment orchestrator
+
+function sendMessage(message) {
+  logExpression("Sending message to environment orchestrator: ", 2);
   logExpression(message, 2);
-  return classifyMessage(message)
-  .then(classification => {
-    classification.environmentUUID = message.environmentUUIID;
-    logExpression("Classification from classify message: ", 2);
-    logExpression(classification, 2);
-    return interpretMessage(classification);
-  })
-  .then(interpretation => {
-    if(message.speaker == agentName) { // Message was from me. This verifies that a message I sent earlier was allowed by the system; record as such.
-      logExpression("This message is from me! I'm not going to talk to myself.", 2);
-      if (interpretation.type == 'AcceptOffer' || interpretation.type == 'RejectOffer') { // If offer is accepted or rejected, wipe out the bidHistory with this particular negotiation partner
-          bidHistory[message.addressee] = null;
-      }
-      else {
-        if(bidHistory[message.addressee]) {
-          bidHistory[message.addressee].push(interpretation);
-        }
-      }
-    }
-    else if (message.addressee == agentName && message.role == "buyer") { // Message was not from me, but it was addressed to me by a buyer; continue to process
-      logExpression("Interpretation of message: ", 2);
-      logExpression(interpretation, 2);
-      let messageResponse = {
-        text: "",
-        speaker: agentName,
-        role: "seller",
-        addressee: message.speaker,
-        environmentUUID: interpretation.metadata.environmentUUID,
-        timeStamp: new Date()
-      };
-      if(interpretation.type == "AcceptOffer") {
-        logExpression("The buyer " + message.speaker + " accepted my offer.", 2);
-        logExpression(bidHistory, 2);
-        if(bidHistory[message.speaker] && bidHistory[message.speaker].length) {
-          let bidHistoryIndividual = bidHistory[message.speaker].filter(bid =>
-            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
-          );
-          if (bidHistoryIndividual.length) {
-            logExpression(bidHistoryIndividual, 2);
-            let acceptedBid = bidHistoryIndividual[bidHistoryIndividual.length - 1];
-            logExpression(acceptedBid, 2);
-            bid = {
-              price: acceptedBid.price,
-              quantity: acceptedBid.quantity,
-              type: "Accept"
-            };
-            logExpression(bid, 2);
-            messageResponse.text = translateBid(bid, true);
-            messageResponse.bid = bid;
-            bidHistory[message.speaker] = null;
-          }
-          else {
-            messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
-          }
-        }
-        else {
-          messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
-        }            
-        return messageResponse;
-      }
-      else if (interpretation.type == "RejectOffer") {
-        logExpression("My offer was rejected!", 2);
-        logExpression(bidHistory, 2);
-        if(bidHistory[message.speaker] && bidHistory[message.speaker].length) {
-          let bidHistoryIndividual = bidHistory[message.speaker].filter(bid =>
-            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
-          );
-          if (bidHistoryIndividual.length) {
-            messageResponse.text = "I'm sorry you rejected my bid. I hope we can do business in the near future.";
-            bidHistory[message.speaker] = null;
-          }
-          else {
-            messageResponse.text = "There must be some confusion; I'm not aware of any outstanding offers.";
-          }
-        }
-        else {
-          messageResponse.text = "OK, but I didn't think we had any outstanding offers.";
-        }            
-        return messageResponse;
-      }
-      else if (interpretation.type == "Information") {
-        logExpression("This is an informational message.", 2);
-        let messageResponse = {
-          text: "OK. Thanks for letting me know.",
-          speaker: agentName,
-          role: "seller",
-          addressee: message.speaker,
-          environmentUUID: interpretation.metadata.environmentUUID,
-          timeStamp: new Date()
-        };
-        return messageResponse;
-      }
-      else if (interpretation.type == "NotUnderstood") {
-        logExpression("I didn't understand this message; pretend it never happened.", 2);
-        return null;
-      }
-      else if(mayIRespond(interpretation)) {
-  
-        if(!bidHistory[message.speaker]) bidHistory[message.speaker] = [];
-        bidHistory[message.speaker].push(interpretation);
-  
-        let bid = generateBid(interpretation);
-        logExpression("Proposed bid is: ", 2);
-        logExpression(bid, 2);
-  
-        let bidResponse = {
-          text: translateBid(bid, false),
-          speaker: agentName,
-          role: "seller",
-          addressee: message.speaker,
-          environmentUUID: interpretation.metadata.environmentUUID,
-          timeStamp: new Date()
-        };
-        bidResponse.bid = bid;
-  
-        return bidResponse;
-      }
-      else {
-        return null;
-      }
-    }
-  })
-  .catch(error => {
-    logExpression("Encountered error in processMessage: ", 1);
-    logExpression(error, 1);
-    return Promise.resolve(null);
-  });
+  return postDataToServiceType(message, 'environment-orchestrator', '/relayMessage');
 }
 
-// Quantize numeric quantity to desired number of decimal digits
-// Useful for making sure that bid prices don't get more fine-grained than cents
-function quantize(quantity, decimals) {
-  let multiplicator = Math.pow(10, decimals);
-  let q = parseFloat((quantity * multiplicator).toFixed(11));
-  return Math.round(q) / multiplicator;
-}
+
+// *** postDataToServiceType()
+// POST a given json to a service type; mappings to host:port are externalized in the appSettings.json file
 
 function postDataToServiceType(json, serviceType, path) {
   let serviceMap = appSettings.serviceMap;
@@ -645,6 +750,10 @@ function postDataToServiceType(json, serviceType, path) {
   }
 }
 
+
+// *** options2URL() 
+// Convert host, port, path to URL
+
 function options2URL(options) {
   let protocol = options.protocol || 'http';
   let url = protocol + '://' + options.host;
@@ -652,16 +761,3 @@ function options2URL(options) {
   if (options.path) url  += options.path;
   return url;
 }
-
-//function postDataToServiceTypeNew(json, serviceType, path) {
-////  let serviceMap = appSettings.serviceMap;
-//  if(serviceMap[serviceType]) {
-//    let options = serviceMap[serviceType];
-//    options.path = path;
-//    let url = options2URL(options);
-//    request.post({url, body: json, json: true}, (error, response, body) => {
-//      if(!error) return Promise.resolve(body);
-//      else return Promise.reject(error);
-//    });
-//  }
-//}
