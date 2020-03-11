@@ -21,7 +21,7 @@ mv agent-jok agent-jok1
 ```
 
 3. Create a Watson Assistant instance: 
-To create the Watson Assistant instance, you can visit the following site to  first set up a free account: https://cloud.ibm.com/registration?target=/developer/watson/launch-tool/conversation&hideTours=true&cm_sp=WatsonPlatform-WatsonPlatform-_-OnPageNavCTA-IBMWatson_Conversation-_-Watson_Developer_Website&cm_mmca1=000027BD. Then, you will be guided through the process creating a Watson Assistant instance. After that, you will need to create a skill to associate with your Watson Assistant instance.
+To create the Watson Assistant instance, you can visit the following site to set up a free account: https://cloud.ibm.com/registration?target=/developer/watson/launch-tool/conversation&hideTours=true&cm_sp=WatsonPlatform-WatsonPlatform-_-OnPageNavCTA-IBMWatson_Conversation-_-Watson_Developer_Website&cm_mmca1=000027BD. Then, you will be guided through the process of creating a Watson Assistant instance. After that, you will need to create a skill to associate with your Watson Assistant instance.
 
 4. Find the credentials of the Watson Assistant instance which contains the apikey and url, access the directory where you cloned this repository, copy the file `assistantParams.json.template` to `assistantParams.json` and edit this file with the apikey and url values.
 
@@ -37,7 +37,7 @@ Associate the skill that you have created in step 4 to the Watson Assistant inst
 
 6. After you have associated the skill, click on the skills details in the Watson Assistant UI and copy the `assistantId` field to the `assistantParams.json`.
 
-7. Install the dependecies with the following command:
+7. Install the dependencies with the following command:
 ```sh
 npm install
 ```
