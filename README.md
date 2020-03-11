@@ -10,29 +10,46 @@ How to install the HUMAINE negotiation agent
 
 To install an instance of the sample HUMAINE negotiation agent, execute the following commands:
 
+1. Run git clone:
 ```sh
 git clone git@github.com:humaine-anac/agent-jok.git
+```
+
+2. Rename the project to the name of the instance of your agent, for instance, agent-jok1
+```sh
 mv agent-jok agent-jok1
+```
+
+3. Create a Watson Assistant instance: 
+To create the Watson Assistant instance, you can visit the following site to  first set up a free account: https://cloud.ibm.com/registration?target=/developer/watson/launch-tool/conversation&hideTours=true&cm_sp=WatsonPlatform-WatsonPlatform-_-OnPageNavCTA-IBMWatson_Conversation-_-Watson_Developer_Website&cm_mmca1=000027BD. Then, you will be guided through the process creating a Watson Assistant instance. After that, you will need to create a skill to associate with your Watson Assistant instance.
+
+4. Find the credentials of the Watson Assistant instance which contains the apikey and url, access the directory where you cloned this repository, copy the file `assistantParams.json.template` to `assistantParams.json` and edit this file with the apikey and url values.
+
+```sh
 cd agent-jok1
-cp appSettings.json.template1 appSettings.json
 cp assistantParams.json.template assistantParams.json
+```
+
+Note that, when you create your second agent, you need to copy the `appSettings.json.template2`.
+
+5. Create a skill in Watson Assistant instance. To do that, upload the file `skill-HUMAINE-agent-v2.json`, which is in this repository.
+Associate the skill that you have created in step 4 to the Watson Assistant instance using the Watson Assistant UI. For more information, please read Watson Assistant documentation. 
+
+6. After you have associated the skill, click on the skills details in the Watson Assistant UI and copy the `assistantId` field to the `assistantParams.json`.
+
+7. Install the dependecies with the following command:
+```sh
 npm install
 ```
 
-For this particular sample agent, you need a Watson Assistant instance and an associated skill. You can visit this site to set up a free account: https://cloud.ibm.com/registration?target=/developer/watson/launch-tool/conversation&hideTours=true&cm_sp=WatsonPlatform-WatsonPlatform-_-OnPageNavCTA-IBMWatson_Conversation-_-Watson_Developer_Website&cm_mmca1=000027BD. This will guide you through the process of setting up an account, and creating a Watson Assistant. You will need to create a skill to associate with your Watson Assistant instance.
-
-To do that, upload the file `skill-HUMAINE-agent-v2.json`, which is in this repository.
-
-Edit the file assistantParams.json to include the correct apikey, url, and assistantId for the Watson Assistant instance that you created.
-
-Finally, to instantiate the agent, execute
+8. Finally, to instantiate the agent, run:
 ```sh
 node agent-jok.js -level 2 -port 14007 > agent001.log &
 ```
 
 Now you should have a running instance of the negotiation agent.
 
-To instantiate a second instance of the agent, repeat all of the steps above, with *jok2* replacing *jok1*, *template2* replacing *template1*, and *-port 14008* replacing *-port 14007*. Explicitly, assuming you are starting from the agent-jok1 directory, execute:
+To instantiate a second instance of the agent, repeat all of the steps above, with *jok2* replacing *jok1*, *template2* replacing *template1*, and *-port 14008* replacing *-port 14007*. Note that by doing that, your secong agent will use the same instance of Watson Assistant instance. Explicitly, assuming you are starting from the agent-jok1 directory, execute:
 
 ```sh
 cd ..
