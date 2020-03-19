@@ -344,9 +344,9 @@ http.createServer(app).listen(app.get('port'), () => {
 
 function mayIRespond(interpretation) {
 
-  if (turnTakingAware){
+  if (turnTakingAware) {
 
-    return (interpretation &&
+    return (interpretation && interpretation.metadata &&
             interpretation.metadata.role == "buyer" &&
             (interpretation.metadata.addressee == agentName ||
              (!interpretation.metadata.addressee || interpretation.metadata.addressee==undefined)));
@@ -540,7 +540,9 @@ function processMessage(message) {
     // else if (!turnTakingAware || (addresse ==agentName)) {
     //   if (message_speaker_role == "buyer"  ){
 
-    else if ( !turnTakingAware || ((addressee == agentName || addressee==undefined) && (message_speaker_role == "buyer" || message_speaker_role == "seller"))) {
+    else if ( !turnTakingAware ||
+             ((addressee == agentName || addressee==undefined) &&
+              (message_speaker_role == "buyer" || message_speaker_role == "seller"))) {
 
         logExpression("123 Interpretation of message: ", 2);
         logExpression(interpretation, 2);
@@ -549,9 +551,7 @@ function processMessage(message) {
           speaker: agentName,
           role: "seller",
           bot: true,
-          // addressee: speaker,
-          // addressee: addressee,
-          addressee: undefined,
+          addressee: speaker,
           environmentUUID: interpretation.metadata.environmentUUID,
           timeStamp: new Date(),
           inReplyTo: interpretation.metadata
@@ -614,8 +614,7 @@ function processMessage(message) {
             speaker: agentName,
             role: "seller",
             bot: true,
-            // addressee: speaker,
-            addressee: undefined,
+            addressee: speaker,
             environmentUUID: interpretation.metadata.environmentUUID,
             timeStamp: new Date(),
             inReplyTo: interpretation.metadata
@@ -642,8 +641,7 @@ function processMessage(message) {
             speaker: agentName,
             role: "seller",
             bot: true,
-            // addressee: speaker,
-            addressee: undefined,
+            addressee: speaker,
             environmentUUID: interpretation.metadata.environmentUUID,
             timeStamp: new Date(),
             bidResponse: true,
