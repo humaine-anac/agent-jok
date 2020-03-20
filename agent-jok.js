@@ -51,6 +51,7 @@ let negotiationState = {
   "roundDuration": defaultRoundDuration
 };
 
+let polite = true; // Set to true to force agent to only respond to offers addressed to it; false will yield rude behavior
 let logLevel = 1;
 process.argv.forEach((val, index, array) => {
   if (val === '-port') {
@@ -59,6 +60,11 @@ process.argv.forEach((val, index, array) => {
   if (val === '-level') {
     logLevel = array[index + 1];
     logExpression('Setting log level to ' + logLevel, 1);
+  }
+  if (val == '-polite') {
+    let politeString = array[index + 1];
+    if(politeString.toLowerCase() == 'false') polite = false;
+    logExpression('Setting politeness to ' + polite, 2);
   }
 });
 
@@ -73,8 +79,6 @@ app.use(methodOverride());
 
 let utilityInfo = null;
 let bidHistory;
-
-turnTakingAware = false;
 
 
 // ************************************************************************************************************ //
@@ -337,25 +341,18 @@ http.createServer(app).listen(app.get('port'), () => {
 
 
 // *** mayIRespond()
-// Choose not to respond to certain messages, either because the received offer has the wrong role
-// or because a different agent is being addressed. Note that this self-censoring is stricter than that required
+// Choose not to respond to certain buy offers or requests, either because the received offer has the wrong role
+// or because a different agent is being addressed. Note that this self-censoring is stricter than required
 // by competition rules, i.e. this agent is not trying to steal a deal despite this being permitted under the
 // right circumstances. You can do better than this!
 
-function mayIRespond(interpretation) {
-
-  if (turnTakingAware) {
-
-    return (interpretation && interpretation.metadata &&
-            interpretation.metadata.role == "buyer" &&
-            (interpretation.metadata.addressee == agentName ||
-             (!interpretation.metadata.addressee || interpretation.metadata.addressee==undefined)));
+function mayIRespond(role, addressee) {
+  if (polite) {
+    return (role == "buyer" && (addressee == agentName || !addressee));
+  } else {
+    return true;
   }
-
-  return true;
-
 }
-
 
 // *** calculateUtilitySeller()
 // Calculate utility for a given bundle of goods and price, given the utility function
@@ -447,10 +444,11 @@ function generateBid(offer) {
   else { // The buyer didn't include a proposed price, leaving us free to consider how much to charge.
     // Set markup between 2 and 3 times the cost of the bundle and generate price accordingly.
     let markupRatio = 2.0 + Math.random();
+    let bundleCost = -1.0 * utility; // Utility is -1 * bundle cost since price is interpreted as 0
     bid.type = 'SellOffer';
     bid.price = {
       unit: utilityInfo.currencyUnit,
-      value: quantize((1.0 - markupRatio) * utility, 2)
+      value: quantize(markupRatio * bundleCost, 2) 
     };
   }
   logExpression("About to return from generateBid with bid: ", 2);
@@ -535,139 +533,121 @@ function processMessage(message) {
         }
       }
     }
-    //else if (addressee == agentName && message_speaker_role == "buyer") { // Message was addressed to me by a buyer; continue to process
-    // else if ((addressee == agentName || addressee==undefined) && message_speaker_role == "buyer") { // Message sent by a buyer; continue to process
-    // else if (!turnTakingAware || (addresse ==agentName)) {
-    //   if (message_speaker_role == "buyer"  ){
-
-    else if ( !turnTakingAware ||
-             ((addressee == agentName || addressee==undefined) &&
-              (message_speaker_role == "buyer" || message_speaker_role == "seller"))) {
-
-        logExpression("123 Interpretation of message: ", 2);
-        logExpression(interpretation, 2);
-        let messageResponse = {
-          text: "",
-          speaker: agentName,
-          role: "seller",
-          bot: true,
-          addressee: speaker,
-          environmentUUID: interpretation.metadata.environmentUUID,
-          timeStamp: new Date(),
-          inReplyTo: interpretation.metadata
-        };
-
-        if(interpretation.type == "AcceptOffer") { // Buyer accepted my offer! Deal with it.
-          logExpression("The buyer " + speaker + " accepted my offer.", 2);
-          logExpression(bidHistory, 2);
-          if(bidHistory[speaker] && bidHistory[speaker].length) { // I actually did make an offer to this buyer; fetch details and confirm acceptance
-            let bidHistoryIndividual = bidHistory[speaker].filter(bid =>
-              {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
-            );
-            if (bidHistoryIndividual.length) {
-              logExpression(bidHistoryIndividual, 2);
-              let acceptedBid = bidHistoryIndividual[bidHistoryIndividual.length - 1];
-              logExpression(acceptedBid, 2);
-              bid = {
-                price: acceptedBid.price,
-                quantity: acceptedBid.quantity,
-                type: "Accept"
-              };
-              logExpression(bid, 2);
-              messageResponse.text = translateBid(bid, true);
-              messageResponse.bid = bid;
-              bidHistory[speaker] = null;
-            }
-            else { // Didn't have any outstanding offers with this buyer
-              messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
-            }
+    else if (message_speaker_role == "buyer") { // Message is from a buyer
+      logExpression("Interpretation of message: ", 2);
+      logExpression(interpretation, 2);
+      let messageResponse = { // Start forming message, in case I want to send it
+        text: "",
+        speaker: agentName,
+        role: "seller",
+        addressee: speaker,
+        environmentUUID: interpretation.metadata.environmentUUID,
+        timeStamp: new Date()
+      };
+      if(addressee == agentName && interpretation.type == "AcceptOffer") { // Buyer accepted my offer! Deal with it.
+        logExpression("The buyer " + speaker + " accepted my offer.", 2);
+        logExpression(bidHistory, 2);
+        if(bidHistory[speaker] && bidHistory[speaker].length) { // I actually did make an offer to this buyer; fetch details and confirm acceptance
+          let bidHistoryIndividual = bidHistory[speaker].filter(bid =>
+            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
+          );
+          if (bidHistoryIndividual.length) {
+            logExpression(bidHistoryIndividual, 2);
+            let acceptedBid = bidHistoryIndividual[bidHistoryIndividual.length - 1];
+            logExpression(acceptedBid, 2);
+            bid = {
+              price: acceptedBid.price,
+              quantity: acceptedBid.quantity,
+              type: "Accept"
+            };
+            logExpression(bid, 2);
+            messageResponse.text = translateBid(bid, true);
+            messageResponse.bid = bid;
+            bidHistory[speaker] = null;
           }
           else { // Didn't have any outstanding offers with this buyer
             messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
           }
-          return messageResponse;
         }
-        else if (interpretation.type == "RejectOffer") { // The buyer claims to be rejecting an offer I made; deal with it
-          logExpression("My offer was rejected!", 2);
-          logExpression(bidHistory, 2);
-          if(bidHistory[speaker] && bidHistory[speaker].length) { // Check whether I made an offer to this buyer
-            let bidHistoryIndividual = bidHistory[speaker].filter(bid =>
-              {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
-            );
-            if (bidHistoryIndividual.length) {
-              messageResponse.text = "I'm sorry you rejected my bid. I hope we can do business in the near future.";
-              bidHistory[speaker] = null;
-            }
-            else {
-              messageResponse.text = "There must be some confusion; I'm not aware of any outstanding offers.";
-            }
+        else { // Didn't have any outstanding offers with this buyer
+          messageResponse.text = "I'm sorry, but I'm not aware of any outstanding offers.";
+        }
+        return messageResponse;
+      }
+      else if (addressee == agentName && interpretation.type == "RejectOffer") { // The buyer claims to be rejecting an offer I made; deal with it
+        logExpression("My offer was rejected!", 2);
+        logExpression(bidHistory, 2);
+        if(bidHistory[speaker] && bidHistory[speaker].length) { // Check whether I made an offer to this buyer
+          let bidHistoryIndividual = bidHistory[speaker].filter(bid =>
+            {return (bid.metadata.speaker == agentName && bid.type == "SellOffer");}
+          );
+          if (bidHistoryIndividual.length) {
+            messageResponse.text = "I'm sorry you rejected my bid. I hope we can do business in the near future.";
+            bidHistory[speaker] = null;
           }
           else {
-            messageResponse.text = "OK, but I didn't think we had any outstanding offers.";
+            messageResponse.text = "There must be some confusion; I'm not aware of any outstanding offers.";
           }
-          return messageResponse;
         }
-        else if (interpretation.type == "Information") { // The buyer is just sending an informational message. Reply politely without attempting to understand.
-          logExpression("This is an informational message.", 2);
-          let messageResponse = {
-            text: "OK. Thanks for letting me know.",
-            speaker: agentName,
-            role: "seller",
-            bot: true,
-            addressee: speaker,
-            environmentUUID: interpretation.metadata.environmentUUID,
-            timeStamp: new Date(),
-            inReplyTo: interpretation.metadata
-          };
-          return messageResponse;
+        else {
+          messageResponse.text = "OK, but I didn't think we had any outstanding offers.";
         }
-        else if (interpretation.type == "NotUnderstood") { // The buyer said something, but we can't figure out what they meant. Just ignore them and hope they'll try again if it's important.
-          logExpression("I didn't understand this message; pretend it never happened.", 2);
-          return Promise.resolve(null);
-        }
-        else if((interpretation.type == "BuyOffer" ||
-                 interpretation.type == "BuyRequest" || interpretation.type == "SellOffer") &&
-                mayIRespond(interpretation)) { //The buyer evidently is making an offer or request; if permitted, generate a bid response
+        return messageResponse;
+      }
+      else if (addressee == agentName && interpretation.type == "Information") { // The buyer is just sending me an informational message. Reply politely without attempting to understand.
+        logExpression("This is an informational message.", 2);
+        let messageResponse = {
+          text: "OK. Thanks for letting me know.",
+          speaker: agentName,
+          role: "seller",
+          addressee: speaker,
+          environmentUUID: interpretation.metadata.environmentUUID,
+          timeStamp: new Date()
+        };
+        return messageResponse;
+      }
+      else if (addressee == agentName && interpretation.type == "NotUnderstood") { // The buyer said something, but we can't figure out what they meant. Just ignore them and hope they'll try again if it's important.
+        logExpression("I didn't understand this message; pretend it never happened.", 2);
+        return Promise.resolve(null);
+      }
+      else if(interpretation.type == "BuyOffer" ||
+               interpretation.type == "BuyRequest") { // The buyer is making an offer or a request
+        if(mayIRespond(message_speaker_role, addressee)) { // I'm going to let myself respond, as dictated by mayIRespond()
 
           if(!bidHistory[speaker]) bidHistory[speaker] = [];
           bidHistory[speaker].push(interpretation);
-
+  
           let bid = generateBid(interpretation); // Generate bid based on message interpretation, utility, and the current state of negotiation with the buyer
           logExpression("Proposed bid is: ", 2);
           logExpression(bid, 2);
-
+  
           let bidResponse = {
             text: translateBid(bid, false), // Translate the bid into English
             speaker: agentName,
             role: "seller",
-            bot: true,
             addressee: speaker,
             environmentUUID: interpretation.metadata.environmentUUID,
-            timeStamp: new Date(),
-            bidResponse: true,
-            inReplyTo: interpretation.metadata
+            timeStamp: new Date()
           };
           bidResponse.bid = bid;
-
+  
           return bidResponse;
         }
-        else {
+        else { // Message was from a buyer, but I'm voluntarily opting not to respond, as dictated by mayIRespond()
+          logExpression("I'm choosing not to do respond to this buy offer or request.", 2);
+          logExpression(message, 2);
           return Promise.resolve(null);
         }
-      // }
+      }
+      else { // None of the specific cases are satisfied; don't take any action
+        return Promise.resolve(null);
+      }
     }
-    else if(turnTakingAware && (message_speaker_role == "buyer" && addressee != agentName)) { // Message was not addressed to me, but is a buyer. A more clever agent might try to steal the deal.
-      logExpression("The buyer " + speaker + " sent this message to another agent, " + addressee + ".", 2);
-      logExpression("I'm choosing not to do anything with this information.", 2);
-      logExpression(message, 2);
-      return Promise.resolve(null);
-    }
-    else if(turnTakingAware && (message_speaker_role == "seller")) { // Message was from another seller. A more clever agent might be able to exploit this info somehow!
+    else if(message_speaker_role == "seller") { // Message was from another seller. A more clever agent might be able to exploit this info somehow!
       logExpression("The other seller, " + speaker + ", sent this message: ", 2);
       logExpression(message, 2);
       return Promise.resolve(null);
     }
-
   })
   .catch(error => {
     logExpression("Encountered error in processMessage: ", 1);
