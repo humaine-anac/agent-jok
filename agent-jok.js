@@ -17,8 +17,9 @@ let bodyParser = require('body-parser');
 
 const {classifyMessage} = require('./conversation.js');
 const {extractBidFromMessage, interpretMessage} = require('./extract-bid.js');
+const argv = require('minimist')(process.argv.slice(2));
 
-let myPort = appSettings.defaultPort || 14007;
+let myPort = argv.port || appSettings.defaultPort || 14007;
 let agentName = appSettings.name || "Agent007";
 
 const defaultRole = 'buyer';
@@ -53,22 +54,19 @@ let negotiationState = {
 
 let polite = true; // Set to true to force agent to only respond to offers addressed to it; false will yield rude behavior
 let logLevel = 1;
-process.argv.forEach((val, index, array) => {
-  if (val === '-port') {
-    myPort = array[index + 1];
-  }
-  if (val === '-level') {
-    logLevel = array[index + 1];
-    logExpression('Setting log level to ' + logLevel, 1);
-  }
-  if (val == '-polite') {
-    let politeString = array[index + 1];
-    if(politeString.toLowerCase() == 'false') polite = false;
-    logExpression('Setting politeness to ' + polite, 2);
-  }
-});
 
+if (argv.level) {
+  logLevel = argv.level;
+  logExpression(`Setting log level to ${logLevel}`, 1);
+}
 setLogLevel(logLevel);
+
+if (argv.polite) {
+  if (argv.polite.toLowerCase() === 'false') {
+    polite = false;
+  }
+  logExpression(`Setting politeness to ${polite}`, 2);
+}
 
 const app = express();
 
@@ -448,7 +446,7 @@ function generateBid(offer) {
     bid.type = 'SellOffer';
     bid.price = {
       unit: utilityInfo.currencyUnit,
-      value: quantize(markupRatio * bundleCost, 2) 
+      value: quantize(markupRatio * bundleCost, 2)
     };
   }
   logExpression("About to return from generateBid with bid: ", 2);
@@ -616,11 +614,11 @@ function processMessage(message) {
 
           if(!bidHistory[speaker]) bidHistory[speaker] = [];
           bidHistory[speaker].push(interpretation);
-  
+
           let bid = generateBid(interpretation); // Generate bid based on message interpretation, utility, and the current state of negotiation with the buyer
           logExpression("Proposed bid is: ", 2);
           logExpression(bid, 2);
-  
+
           let bidResponse = {
             text: translateBid(bid, false), // Translate the bid into English
             speaker: agentName,
@@ -630,7 +628,7 @@ function processMessage(message) {
             timeStamp: new Date()
           };
           bidResponse.bid = bid;
-  
+
           return bidResponse;
         }
         else { // Message was from a buyer, but I'm voluntarily opting not to respond, as dictated by mayIRespond()

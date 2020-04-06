@@ -21,6 +21,7 @@
     "ibm-watson": "*",
     "lodash": "^4.17.11",
     "method-override": "^3.0.0",
+    "minimist": "^1.2.5",
     "prettier": "^1.16.1",
     "request": "*",
     "request-promise": "^4.2.5",
