@@ -15,54 +15,37 @@ To install an instance of the sample HUMAINE negotiation agent, execute the foll
 git clone git@github.com:humaine-anac/agent-jok.git
 ```
 
-2. Rename the project to the name of the instance of your agent, for instance, agent-jok1
-```sh
-mv agent-jok agent-jok1
-```
-
-3. Create a Watson Assistant instance: 
+2. Create a Watson Assistant instance:
 To create the Watson Assistant instance, you can visit the following site to set up a free account: https://cloud.ibm.com/registration?target=/developer/watson/launch-tool/conversation&hideTours=true&cm_sp=WatsonPlatform-WatsonPlatform-_-OnPageNavCTA-IBMWatson_Conversation-_-Watson_Developer_Website&cm_mmca1=000027BD. Then, you will be guided through the process of creating a Watson Assistant instance. After that, you will need to create a skill to associate with your Watson Assistant instance.
 
-4. Find the credentials of the Watson Assistant instance which contains the apikey and url, access the directory where you cloned this repository, copy the file `assistantParams.json.template1` to `assistantParams.json` and edit this file with the apikey and url values.
+3. Find the credentials of the Watson Assistant instance which contains the apikey and url, access the directory where you cloned this repository, copy the file `assistantParams.json.template1` to `assistantParams.json` and edit this file with the apikey and url values.
 
 ```sh
-cd agent-jok1
+cd agent-jok
 cp assistantParams.json.template1 assistantParams.json
 ```
 
 Note that, when you create your second agent, you need to copy the `appSettings.json.template2`.
 
-5. Create a skill in Watson Assistant instance. To do that, upload the file `skill-HUMAINE-agent-v2.json`, which is in this repository.
-Associate the skill that you have created in step 4 to the Watson Assistant instance using the Watson Assistant UI. For more information, please read Watson Assistant documentation. 
+4. Create a skill in Watson Assistant instance. To do that, upload the file `skill-HUMAINE-agent-v2.json`, which is in this repository.
+Associate the skill that you have created in step 4 to the Watson Assistant instance using the Watson Assistant UI. For more information, please read Watson Assistant documentation.
 
-6. After you have associated the skill, click on the skills details in the Watson Assistant UI and copy the `assistantId` field to the `assistantParams.json`.
+5. After you have associated the skill, click on the skills details in the Watson Assistant UI and copy the `assistantId` field to the `assistantParams.json`.
 
-7. Install the dependencies with the following command:
+6. Install the dependencies with the following command:
 ```sh
 npm install
 ```
 
-8. Finally, to instantiate the agent, run:
+7. Finally, to instantiate the agent, run:
 ```sh
 node agent-jok.js -level 2 -port 14007 > agent001.log &
 ```
 
 Now you should have a running instance of the negotiation agent.
 
-To instantiate a second instance of the agent, repeat all of the steps above, with *jok2* replacing *jok1*, *template2* replacing *template1*, and *-port 14008* replacing *-port 14007*. Note that by doing that, your secong agent will use the same instance of Watson Assistant instance. Explicitly, assuming you are starting from the agent-jok1 directory, execute:
-
-```sh
-cd ..
-git clone git@github.com:humaine-anac/agent-jok.git
-mv agent-jok agent-jok2
-cd agent-jok2
-cp appSettings.json.template2 appSettings.json
-cp ../agent-jok1/assistantParams.json .
-npm install
-node agent-jok.js -level 2 -port 14008 > agent001.log &
-```
-*Note that the assistantParams.json file should be the same in the agent-jok1 and agent-jok2 directories.*
-
+To instantiate a second instance of the agent, change the `-port` argument to a different number, e.g. `-port 14008`.
+Note that by doing that, your secong agent will use the same instance of Watson Assistant instance.
 
 How to test the negotiation agent (normal setup)
 ----
@@ -85,7 +68,7 @@ Now you should be able to test the system by performing the following steps in o
   - Watson, I'll give you $4.50 for 4 cups of milk and 3 packets of blueberries.
   - Celia, I accept your offer of 5 eggs, 3 cups of sugar and 4 ounces of chocolate for $8.50.
   - Watson, that's too expensive. Forget about it.
- 
+
 
 - **To view the queue of messages** received by the environment orchestrator: `<host>:14010/viewQueue`
 
@@ -115,14 +98,14 @@ Here are brief instructions for testing:
   *This uses a GET route of the environment orchestrator to simulate a human speaking.*
 
 - To view the queue of messages received by the environment orchestrator: `<host>:14010/viewQueue`
-- You can iterate the second two steps several times to simulate a human buyer responding to the agent message in the message queue. 
+- You can iterate the second two steps several times to simulate a human buyer responding to the agent message in the message queue.
   This step will become much easier with the ChatUI. Then you'll be able to type the human buyer message and see agent responses.
   Note that, in this stand-alone version, you will have to address the agents by name with each request so that the agents
   know when they are being addressed.
 
 Note that there is some delay between when you ask for a round to start and the actual start of the round;
 this delay is set in appSettings.json (roundWarmupDelay). So a bid will not be valid until the round actually starts.
-The default value is 5 seconds; we may want to set it to 30 seconds in the actual competition to give humans time to think about their negotiation strategy. 
+The default value is 5 seconds; we may want to set it to 30 seconds in the actual competition to give humans time to think about their negotiation strategy.
 
 Essential APIs
 ----
@@ -131,7 +114,7 @@ Essential APIs
 `/setUtility (POST)`
 -----
 
-This API, typically called by the Environment Orchestrator, establishes the utility for the agent just before the round starts. It may also contain the name to be used by the agent. 
+This API, typically called by the Environment Orchestrator, establishes the utility for the agent just before the round starts. It may also contain the name to be used by the agent.
 
 Example POST body:
 
@@ -193,7 +176,7 @@ Example POST body:
 }
 ```
 
-In response, the agent sends a status message indicating whether the message has been received successfully: either 
+In response, the agent sends a status message indicating whether the message has been received successfully: either
 
 ```
 {
@@ -202,7 +185,7 @@ In response, the agent sends a status message indicating whether the message has
 }
 ```
 
-or 
+or
 
 ```
 {
@@ -348,7 +331,7 @@ The response to this API call is either an acknowledgment (when there is a messa
     "message": *message*
 }
 ```
-or 
+or
 
 ```
 {
