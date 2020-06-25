@@ -24,9 +24,10 @@ let agentName = appSettings.name || "Agent007";
 
 const defaultRole = 'buyer';
 const defaultSpeaker = 'Jeff';
-const defaultEnvironmentUUID = 'abcdefg';
 const defaultAddressee = agentName;
 const defaultRoundDuration = 600;
+
+let roundId;
 
 const rejectionMessages = [
   "No thanks. Your offer is much too low for me to consider.",
@@ -88,12 +89,13 @@ let bidHistory;
 app.post('/setUtility', (req, res) => {
   logExpression("Inside setUtility (POST).", 2);
   if(req.body) {
+    roundId = req.body.roundId;
     utilityInfo = req.body;
     logExpression("Received utilityInfo: ", 2);
     logExpression(utilityInfo, 2);
     agentName = utilityInfo.name || agentName;
     logExpression("agentName: " + agentName, 2);
-    let msg = {"status": "Acknowledged", "utility": utilityInfo};
+    let msg = {roundId, "status": "Acknowledged", "utility": utilityInfo};
     logExpression(msg, 2);
     res.json(msg);
   }
@@ -110,14 +112,14 @@ app.post('/startRound', (req, res) => {
   bidHistory = {};
   if(req.body) {
     negotiationState.roundDuration = req.body.roundDuration || negotiationState.roundDuration;
-    negotiationState.roundNumber = req.body.roundNumber || negotiationState.roundNumber;
+    negotiationState.roundId = req.body.roundId || negotiationState.roundId;
   }
   negotiationState.active = true;
   negotiationState.startTime = new Date();
   negotiationState.stopTime = new Date(negotiationState.startTime.getTime() + 1000 * negotiationState.roundDuration);
   logExpression("Negotiation state is: ", 2);
   logExpression(negotiationState, 2);
-  let msg = {"status": "Acknowledged"};
+  let msg = {roundId, "status": "Acknowledged"};
   res.json(msg);
 });
 
@@ -128,7 +130,7 @@ app.post('/endRound', (req, res) => {
   negotiationState.endTime = new Date();
   logExpression("Negotiation state is: ", 2);
   logExpression(negotiationState, 2);
-  let msg = {"status": "Acknowledged"};
+  let msg = {roundId, "status": "Acknowledged"};
   res.json(msg);
 });
 
@@ -155,8 +157,9 @@ app.post('/receiveMessage', (req, res) => {
     message.speaker = message.speaker || defaultSpeaker;
     message.addressee = message.addressee;
     message.role = message.role || message.defaultRole;
-    message.environmentUUID = message.environmentUUID || defaultEnvironmentUUID;
+    message.roundId = message.roundId || defaultRoundId;
     response = { // Acknowledge receipt of message from the environment orchestrator
+      roundId,
       status: "Acknowledged",
       interpretation: message
     };
@@ -205,13 +208,16 @@ app.post('/receiveRejection', (req, res) => {
     logExpression("Rejected message is: ", 2);
     logExpression(message, 2);
     response = { // Acknowledge receipt of message from the environment orchestrator
+      roundId,
       status: "Acknowledged",
       message
     };
-    if(message.rationale &&
-       message.rationale == "Insufficient budget" &&
-       message.bid &&
-       message.bid.type == "Accept") { // We tried to respond with an accept, but were rejected. So that the buyer will not interpret our apparent silence as rudeness, explain to the Human that he/she were rejected due to insufficient budget.
+    if(
+      message.rationale &&
+      message.rationale == "Insufficient budget" &&
+      message.bid &&
+      message.bid.type == "Accept"
+    ) { // We tried to respond with an accept, but were rejected. So that the buyer will not interpret our apparent silence as rudeness, explain to the Human that he/she were rejected due to insufficient budget.
       let msg2 = JSON.parse(JSON.stringify(message));
       delete msg2.rationale;
       delete msg2.bid;
@@ -249,7 +255,7 @@ app.get('/classifyMessage', (req, res) => {
     logExpression(message, 2);
     return classifyMessage(message)
     .then(waResponse => {
-      waResponse.environmentUUID = message.environmentUUID;
+      waResponse.roundId = roundId;
       logExpression("Response from Watson Assistant: ", 2);
       logExpression(waResponse, 2);
       res.json(waResponse);
@@ -268,8 +274,9 @@ app.post('/classifyMessage', (req, res) => {
     message.environmentUUID = message.environmentUUID || defaultEnvironmentUUID;
     logExpression("Message is: ", 2);
     logExpression(message, 2);
-    return classifyMessage(message, message.environmentUUID)
+    return classifyMessage(message)
     .then(waResponse => {
+      waResponse.roundId = roundId;
       logExpression("Response from Watson Assistant : ", 2);
       logExpression(waResponse, 2);
       res.json(waResponse);
@@ -297,6 +304,7 @@ app.post('/extractBid', (req, res) => {
     logExpression(message, 2);
     return extractBidFromMessage(message)
     .then(extractedBid => {
+      extractedBid.roundId = roundId;
       logExpression("Extracted bid : ", 2);
       logExpression(extractedBid, 2);
       res.json(extractedBid);
@@ -313,6 +321,7 @@ app.post('/extractBid', (req, res) => {
 app.get('/reportUtility', (req, res) => {
   logExpression("Inside reportUtility (GET).", 2);
   if(utilityInfo) {
+    utilityInfo.roundId = roundId;
     res.json(utilityInfo);
   }
   else {
@@ -730,6 +739,7 @@ function selectMessage(messageSet) {
 // Send specified message to the /receiveMessage route of the environment orchestrator
 
 function sendMessage(message) {
+  message.roundId = roundId;
   logExpression("Sending message to environment orchestrator: ", 2);
   logExpression(message, 2);
   return postDataToServiceType(message, 'environment-orchestrator', '/relayMessage');

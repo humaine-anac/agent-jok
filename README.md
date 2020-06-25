@@ -206,7 +206,7 @@ Example POST body:
 ```
 {
     "roundDuration": 300,
-    "roundNumber": 1,
+    "roundId": 1,
     "timestamp": "2020-02-23T06:27:10.282Z"
 }
 ```
@@ -227,7 +227,7 @@ Example POST body:
 
 ```
 {
-    roundNumber: 1,
+    roundId: 1,
     "timestamp": "2020-02-23T06:32:10.282Z"
 }
 ```
