@@ -51,6 +51,11 @@ function interpretMessage(watsonResponse) {
       type: "RejectOffer"
     };
   }
+  else if (intents[0].intent == "Haggle" && intents[0].confidence > 0.2) {
+    cmd = {
+      type: "Haggle"
+    };
+  }
   else if (intents[0].intent == "Information" && intents[0].confidence > 0.2) {
     cmd = {
       type: "Information"

@@ -1,0 +1,1811 @@
+Express server listening on port 14007 2
+Inside setUtility (POST). 2
+Received utilityInfo:  2
+{
+  currencyUnit: 'USD',
+  utility: {
+    egg: { type: 'unitcost', unit: 'each', parameters: [Object] },
+    flour: { type: 'unitcost', unit: 'cup', parameters: [Object] },
+    sugar: { type: 'unitcost', unit: 'cup', parameters: [Object] },
+    milk: { type: 'unitcost', unit: 'cup', parameters: [Object] },
+    chocolate: { type: 'unitcost', unit: 'ounce', parameters: [Object] },
+    blueberry: { type: 'unitcost', unit: 'packet', parameters: [Object] },
+    vanilla: { type: 'unitcost', unit: 'teaspoon', parameters: [Object] }
+  },
+  name: 'Watson'
+} 2
+agentName: Watson 2
+{
+  roundId: undefined,
+  status: 'Acknowledged',
+  utility: {
+    currencyUnit: 'USD',
+    utility: {
+      egg: [Object],
+      flour: [Object],
+      sugar: [Object],
+      milk: [Object],
+      chocolate: [Object],
+      blueberry: [Object],
+      vanilla: [Object]
+    },
+    name: 'Watson'
+  }
+} 2
+Inside startRound (POST). 2
+Negotiation state is:  2
+{
+  active: true,
+  startTime: 2020-10-26T22:19:26.541Z,
+  roundDuration: 300,
+  roundId: undefined,
+  stopTime: 2020-10-26T22:24:26.541Z
+} 2
+Inside receiveMessage (POST). 2
+Remaining time: 287.409 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I would like to buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750779122
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I would like to buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750779122,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I would like to buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750779122,
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.44861792614465235 },
+    { intent: 'Haggle', confidence: 0.1516928856494218 },
+    { intent: 'Information', confidence: 0.10461291969901315 },
+    { intent: 'RejectOffer', confidence: 0.10049233615585695 },
+    { intent: 'AcceptOffer', confidence: 0.09618838872454259 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '2',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "I didn't understand. You can try rephrasing."
+    }
+  ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I would like to buy 2 eggs',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750779122,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 2 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I would like to buy 2 eggs',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750779122,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:19:40.488Z
+  }
+} 2
+Interpretation of message:  2
+{
+  quantity: { egg: 2 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I would like to buy 2 eggs',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750779122,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:19:40.488Z
+  }
+} 2
+I'm choosing not to do respond to this buy offer or request. 2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I would like to buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750779122,
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 286.04 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: 'How about if I sell you 2 egg for 1.36 USD. All my eggs come from farm raised chickens, so I can guarantee their quality.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:40.488Z'
+} 2
+Message is:  2
+{
+  text: 'How about if I sell you 2 egg for 1.36 USD. All my eggs come from farm raised chickens, so I can guarantee their quality.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:40.488Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: 'How about if I sell you 2 egg for 1.36 USD. All my eggs come from farm raised chickens, so I can guarantee their quality.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:40.488Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.287220122787349 },
+    { intent: 'Information', confidence: 0.07969140998768438 },
+    { intent: 'Haggle', confidence: 0.0738834324005719 },
+    { intent: 'RejectOffer', confidence: 0.07126932963223638 },
+    { intent: 'AcceptOffer', confidence: 0.06505813853160754 }
+  ],
+  entities: [
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '2',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '1.36',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'sys-currency',
+      location: [Array],
+      value: '1.36',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "Can you reword your statement? I'm not understanding."
+    }
+  ],
+  input: {
+    text: 'How about if I sell you 2 egg for 1.36 USD. All my eggs come from farm raised chickens, so I can guarantee their quality.',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:19:40.488Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 1.36 },
+  price: { value: 1.36, unit: 'USD' },
+  type: 'SellOffer',
+  metadata: {
+    text: 'How about if I sell you 2 egg for 1.36 USD. All my eggs come from farm raised chickens, so I can guarantee their quality.',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:19:40.830Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: 'How about if I sell you 2 egg for 1.36 USD. All my eggs come from farm raised chickens, so I can guarantee their quality.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:40.488Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 273.465 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia do you have deals?',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750793069
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia do you have deals?',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750793069,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia do you have deals?',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750793069,
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Haggle', confidence: 0.2690201983623751 },
+    { intent: 'AcceptOffer', confidence: 0.07802552715631778 },
+    { intent: 'Information', confidence: 0.07328634265906722 },
+    { intent: 'Offer', confidence: 0.06747290054375076 },
+    { intent: 'RejectOffer', confidence: 0.06090466059182176 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    }
+  ],
+  generic: [ { response_type: 'text', text: "I didn't get your meaning." } ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia do you have deals?',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750793069,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  type: 'Haggle',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia do you have deals?',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750793069,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:19:53.446Z
+  }
+} 2
+Interpretation of message:  2
+{
+  type: 'Haggle',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia do you have deals?',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750793069,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:19:53.446Z
+  }
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 273.074 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:53.460Z'
+} 2
+Message is:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:53.460Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:53.460Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'AcceptOffer', confidence: 0.004594593196299002 },
+    { intent: 'RejectOffer', confidence: 0.004491122969506023 },
+    { intent: 'Offer', confidence: 0.0035513511406378485 },
+    { intent: 'Haggle', confidence: 0.0031745112662179054 },
+    { intent: 'Information', confidence: 0.003060619296434197 }
+  ],
+  entities: [],
+  generic: [
+    {
+      response_type: 'text',
+      text: "I didn't understand. You can try rephrasing."
+    }
+  ],
+  input: {
+    text: 'Reply message is located here',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:19:53.460Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  type: 'NotUnderstood',
+  metadata: {
+    text: 'Reply message is located here',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:19:53.794Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:19:53.460Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 258.876 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750807657
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750807657,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750807657,
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.3951969516993614 },
+    { intent: 'Haggle', confidence: 0.20454830537558166 },
+    { intent: 'Information', confidence: 0.09527716588961878 },
+    { intent: 'RejectOffer', confidence: 0.08991022833636642 },
+    { intent: 'AcceptOffer', confidence: 0.08605722747165347 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '2',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "Can you reword your statement? I'm not understanding."
+    }
+  ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can I buy 2 eggs',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750807657,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 2 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can I buy 2 eggs',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750807657,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:20:07.975Z
+  }
+} 2
+Interpretation of message:  2
+{
+  quantity: { egg: 2 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can I buy 2 eggs',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750807657,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:20:07.975Z
+  }
+} 2
+I'm choosing not to do respond to this buy offer or request. 2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 2 eggs',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750807657,
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 258.462 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: 'How about if I sell you 2 egg for 1.31 USD. I had these eggs delivered to me this morning, so I can guarantee their freshness.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:08.072Z'
+} 2
+Message is:  2
+{
+  text: 'How about if I sell you 2 egg for 1.31 USD. I had these eggs delivered to me this morning, so I can guarantee their freshness.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:08.072Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: 'How about if I sell you 2 egg for 1.31 USD. I had these eggs delivered to me this morning, so I can guarantee their freshness.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:08.072Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.43597731429572384 },
+    { intent: 'Information', confidence: 0.12014470158811719 },
+    { intent: 'Haggle', confidence: 0.11582127202262314 },
+    { intent: 'RejectOffer', confidence: 0.10509569999966288 },
+    { intent: 'AcceptOffer', confidence: 0.10075070707244009 }
+  ],
+  entities: [
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '2',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '1.31',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'sys-currency',
+      location: [Array],
+      value: '1.31',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 }
+  ],
+  generic: [ { response_type: 'text', text: "I didn't get your meaning." } ],
+  input: {
+    text: 'How about if I sell you 2 egg for 1.31 USD. I had these eggs delivered to me this morning, so I can guarantee their freshness.',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:20:08.072Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 1.31 },
+  price: { value: 1.31, unit: 'USD' },
+  type: 'SellOffer',
+  metadata: {
+    text: 'How about if I sell you 2 egg for 1.31 USD. I had these eggs delivered to me this morning, so I can guarantee their freshness.',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:20:08.327Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: 'How about if I sell you 2 egg for 1.31 USD. I had these eggs delivered to me this morning, so I can guarantee their freshness.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:08.072Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 251.241 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I accept your offer',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750815293
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I accept your offer',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750815293,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I accept your offer',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750815293,
+  roundId: 0
+} 2
+Inside receiveMessage (POST). 2
+Remaining time: 250.849 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: "I confirm that I'm selling you  1.31 egg for 1.31 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:15.680Z'
+} 2
+Message is:  2
+{
+  text: "I confirm that I'm selling you  1.31 egg for 1.31 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:15.680Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: "I confirm that I'm selling you  1.31 egg for 1.31 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:15.680Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'AcceptOffer', confidence: 0.7366194725036621 },
+    { intent: 'Haggle', confidence: 0.5276353359222412 },
+    { intent: 'RejectOffer', confidence: 0.22294506877660752 },
+    { intent: 'Information', confidence: 0.21759895384311678 },
+    { intent: 'Offer', confidence: 0.21643855571746828 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "I didn't understand. You can try rephrasing."
+    }
+  ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I accept your offer',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750815293,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  type: 'AcceptOffer',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I accept your offer',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750815293,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:20:15.703Z
+  }
+} 2
+Interpretation of message:  2
+{
+  type: 'AcceptOffer',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I accept your offer',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750815293,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:20:15.703Z
+  }
+} 2
+Bid message is:  2
+null 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.3486430932050325 },
+    { intent: 'Information', confidence: 0.09412239174496229 },
+    { intent: 'RejectOffer', confidence: 0.08673370482591061 },
+    { intent: 'Haggle', confidence: 0.08315652282752817 },
+    { intent: 'AcceptOffer', confidence: 0.08247757909564522 }
+  ],
+  entities: [
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '1.31',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '1.31',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'sys-currency',
+      location: [Array],
+      value: '1.31',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "Can you reword your statement? I'm not understanding."
+    }
+  ],
+  input: {
+    text: "I confirm that I'm selling you  1.31 egg for 1.31 USD.",
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:20:15.680Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 1.31 },
+  price: { value: 1.31, unit: 'USD' },
+  type: 'SellOffer',
+  metadata: {
+    text: "I confirm that I'm selling you  1.31 egg for 1.31 USD.",
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:20:15.956Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: "I confirm that I'm selling you  1.31 egg for 1.31 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:20:15.680Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 146.537 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 3 cups of flour',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750919997
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 3 cups of flour',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750919997,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 3 cups of flour',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750919997,
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.34987152956814505 },
+    { intent: 'Haggle', confidence: 0.17964290298039032 },
+    { intent: 'RejectOffer', confidence: 0.0860273233707062 },
+    { intent: 'Information', confidence: 0.08214069288487025 },
+    { intent: 'AcceptOffer', confidence: 0.07664206007115731 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '3',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'good',
+      location: [Array],
+      value: 'flour',
+      confidence: 0.92
+    }
+  ],
+  generic: [ { response_type: 'text', text: "I didn't get your meaning." } ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can I buy 3 cups of flour',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750919997,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { flour: 3 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can I buy 3 cups of flour',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750919997,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:00.307Z
+  }
+} 2
+Interpretation of message:  2
+{
+  quantity: { flour: 3 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can I buy 3 cups of flour',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750919997,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:00.307Z
+  }
+} 2
+I'm choosing not to do respond to this buy offer or request. 2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can I buy 3 cups of flour',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750919997,
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 146.152 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: 'How about if I sell you 3 flour for 7.06 USD. My flour is top notch. You will not be disappointed!',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:00.381Z'
+} 2
+Message is:  2
+{
+  text: 'How about if I sell you 3 flour for 7.06 USD. My flour is top notch. You will not be disappointed!',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:00.381Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: 'How about if I sell you 3 flour for 7.06 USD. My flour is top notch. You will not be disappointed!',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:00.381Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.2658305988190307 },
+    { intent: 'RejectOffer', confidence: 0.0754879615148326 },
+    { intent: 'Information', confidence: 0.0736349905102717 },
+    { intent: 'Haggle', confidence: 0.06708685573260437 },
+    { intent: 'AcceptOffer', confidence: 0.06238680080276296 }
+  ],
+  entities: [
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '3',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'good',
+      location: [Array],
+      value: 'flour',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '7.06',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'sys-currency',
+      location: [Array],
+      value: '7.06',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'good',
+      location: [Array],
+      value: 'flour',
+      confidence: 1
+    }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "I didn't understand. You can try rephrasing."
+    }
+  ],
+  input: {
+    text: 'How about if I sell you 3 flour for 7.06 USD. My flour is top notch. You will not be disappointed!',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:22:00.381Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { flour: 7.06 },
+  price: { value: 7.06, unit: 'USD' },
+  type: 'SellOffer',
+  metadata: {
+    text: 'How about if I sell you 3 flour for 7.06 USD. My flour is top notch. You will not be disappointed!',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:22:00.653Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: 'How about if I sell you 3 flour for 7.06 USD. My flour is top notch. You will not be disappointed!',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:00.381Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 137.268 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I accept your offer',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750929266
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I accept your offer',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750929266,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I accept your offer',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750929266,
+  roundId: 0
+} 2
+Inside receiveMessage (POST). 2
+Remaining time: 136.991 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: "Perfect! Just to confirm, I'm giving you  7.06 flour for 7.06 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:09.539Z'
+} 2
+Message is:  2
+{
+  text: "Perfect! Just to confirm, I'm giving you  7.06 flour for 7.06 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:09.539Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: "Perfect! Just to confirm, I'm giving you  7.06 flour for 7.06 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:09.539Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'AcceptOffer', confidence: 0.7366194725036621 },
+    { intent: 'Haggle', confidence: 0.5276353359222412 },
+    { intent: 'RejectOffer', confidence: 0.22294506877660752 },
+    { intent: 'Information', confidence: 0.21759895384311678 },
+    { intent: 'Offer', confidence: 0.21643855571746828 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "Can you reword your statement? I'm not understanding."
+    }
+  ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I accept your offer',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750929266,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  type: 'AcceptOffer',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I accept your offer',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750929266,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:09.643Z
+  }
+} 2
+Interpretation of message:  2
+{
+  type: 'AcceptOffer',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I accept your offer',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750929266,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:09.643Z
+  }
+} 2
+Bid message is:  2
+null 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.33156999673763327 },
+    { intent: 'RejectOffer', confidence: 0.09496869044890774 },
+    { intent: 'Information', confidence: 0.0919149462759286 },
+    { intent: 'Haggle', confidence: 0.07673664304113918 },
+    { intent: 'AcceptOffer', confidence: 0.07483826253775461 }
+  ],
+  entities: [
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '7.06',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'good',
+      location: [Array],
+      value: 'flour',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '7.06',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'sys-currency',
+      location: [Array],
+      value: '7.06',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    }
+  ],
+  generic: [ { response_type: 'text', text: "I didn't get your meaning." } ],
+  input: {
+    text: "Perfect! Just to confirm, I'm giving you  7.06 flour for 7.06 USD.",
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:22:09.539Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { flour: 7.06 },
+  price: { value: 7.06, unit: 'USD' },
+  type: 'SellOffer',
+  metadata: {
+    text: "Perfect! Just to confirm, I'm giving you  7.06 flour for 7.06 USD.",
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:22:09.842Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: "Perfect! Just to confirm, I'm giving you  7.06 flour for 7.06 USD.",
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:09.539Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 104.744 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750961789
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750961789,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750961789,
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.374270604921918 },
+    { intent: 'Haggle', confidence: 0.13780487473446923 },
+    { intent: 'RejectOffer', confidence: 0.0948360940607202 },
+    { intent: 'Information', confidence: 0.09376285671132188 },
+    { intent: 'AcceptOffer', confidence: 0.08285846730296109 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '2',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '3',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'milk', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '4',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'good',
+      location: [Array],
+      value: 'sugar',
+      confidence: 1
+    }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "I didn't understand. You can try rephrasing."
+    }
+  ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750961789,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 2, milk: 3, sugar: 4 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750961789,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:42.164Z
+  }
+} 2
+Interpretation of message:  2
+{
+  quantity: { egg: 2, milk: 3, sugar: 4 },
+  type: 'BuyRequest',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750961789,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:42.164Z
+  }
+} 2
+I'm choosing not to do respond to this buy offer or request. 2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia I want 2 eggs, 3 milk, 4 sugar',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750961789,
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 104.371 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: 'How about if I sell you 2 egg 3 milk 4 sugar for 10.21 USD. The quality of my produce is the best in town. You will not be disappointed.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:42.163Z'
+} 2
+Message is:  2
+{
+  text: 'How about if I sell you 2 egg 3 milk 4 sugar for 10.21 USD. The quality of my produce is the best in town. You will not be disappointed.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:42.163Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: 'How about if I sell you 2 egg 3 milk 4 sugar for 10.21 USD. The quality of my produce is the best in town. You will not be disappointed.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:42.163Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Offer', confidence: 0.2910828606373912 },
+    { intent: 'Information', confidence: 0.08351660754763872 },
+    { intent: 'RejectOffer', confidence: 0.08102080304078321 },
+    { intent: 'Haggle', confidence: 0.07467269452209564 },
+    { intent: 'AcceptOffer', confidence: 0.07044774410565689 }
+  ],
+  entities: [
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '2',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'egg', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '3',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    { entity: 'good', location: [Array], value: 'milk', confidence: 1 },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '4',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'good',
+      location: [Array],
+      value: 'sugar',
+      confidence: 1
+    },
+    {
+      entity: 'sys-number',
+      location: [Array],
+      value: '10.21',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    },
+    {
+      entity: 'sys-currency',
+      location: [Array],
+      value: '10.21',
+      confidence: 1,
+      metadata: [Object],
+      interpretation: [Object]
+    }
+  ],
+  generic: [
+    {
+      response_type: 'text',
+      text: "Can you reword your statement? I'm not understanding."
+    }
+  ],
+  input: {
+    text: 'How about if I sell you 2 egg 3 milk 4 sugar for 10.21 USD. The quality of my produce is the best in town. You will not be disappointed.',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:22:42.163Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  quantity: { egg: 2, milk: 3, sugar: 4 },
+  price: { value: 10.21, unit: 'USD' },
+  type: 'SellOffer',
+  metadata: {
+    text: 'How about if I sell you 2 egg 3 milk 4 sugar for 10.21 USD. The quality of my produce is the best in town. You will not be disappointed.',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:22:42.478Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: 'How about if I sell you 2 egg 3 milk 4 sugar for 10.21 USD. The quality of my produce is the best in town. You will not be disappointed.',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:42.163Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 95.248 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can you give me a deal?',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750971286
+} 2
+Message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can you give me a deal?',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750971286,
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  speaker: 'Human',
+  addressee: 'Celia',
+  text: 'Celia can you give me a deal?',
+  role: 'buyer',
+  environmentUUID: 'abcdefg',
+  timestamp: 1603750971286,
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'Haggle', confidence: 0.9624228954315186 },
+    { intent: 'Offer', confidence: 0.24876469373703003 },
+    { intent: 'AcceptOffer', confidence: 0.2397559553384781 },
+    { intent: 'Information', confidence: 0.22234014719724657 },
+    { intent: 'RejectOffer', confidence: 0.2182567983865738 }
+  ],
+  entities: [
+    {
+      entity: 'avatarName',
+      location: [Array],
+      value: 'Celia',
+      confidence: 1
+    }
+  ],
+  generic: [ { response_type: 'text', text: "I didn't get your meaning." } ],
+  input: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can you give me a deal?',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750971286,
+    roundId: 0
+  },
+  addressee: 'Celia',
+  speaker: 'Human',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  type: 'Haggle',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can you give me a deal?',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750971286,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:51.571Z
+  }
+} 2
+Interpretation of message:  2
+{
+  type: 'Haggle',
+  metadata: {
+    speaker: 'Human',
+    addressee: 'Celia',
+    text: 'Celia can you give me a deal?',
+    role: 'buyer',
+    environmentUUID: 'abcdefg',
+    timestamp: 1603750971286,
+    roundId: 0,
+    timeStamp: 2020-10-26T22:22:51.571Z
+  }
+} 2
+Bid message is:  2
+null 2
+Inside receiveMessage (POST). 2
+Remaining time: 94.963 2
+Negotiation state: true 2
+POSTed body:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:51.569Z'
+} 2
+Message is:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:51.569Z',
+  roundId: 0
+} 2
+In processMessage, message is:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:51.569Z',
+  roundId: 0
+} 2
+Classification from classify message:  2
+{
+  intents: [
+    { intent: 'AcceptOffer', confidence: 0.004594593196299002 },
+    { intent: 'RejectOffer', confidence: 0.004491122969506023 },
+    { intent: 'Offer', confidence: 0.0035513511406378485 },
+    { intent: 'Haggle', confidence: 0.0031745112662179054 },
+    { intent: 'Information', confidence: 0.003060619296434197 }
+  ],
+  entities: [],
+  generic: [
+    {
+      response_type: 'text',
+      text: "I didn't understand. You can try rephrasing."
+    }
+  ],
+  input: {
+    text: 'Reply message is located here',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: '2020-10-26T22:22:51.569Z',
+    roundId: 0
+  },
+  addressee: 'Human',
+  speaker: 'Celia',
+  environmentUUID: 'abcdefg'
+} 2
+interpretation is:  2
+{
+  type: 'NotUnderstood',
+  metadata: {
+    text: 'Reply message is located here',
+    speaker: 'Celia',
+    role: 'seller',
+    addressee: 'Human',
+    environmentUUID: 'abcdefg',
+    timeStamp: 2020-10-26T22:22:51.823Z,
+    roundId: 0
+  }
+} 2
+The other seller, Celia, sent this message:  2
+{
+  text: 'Reply message is located here',
+  speaker: 'Celia',
+  role: 'seller',
+  addressee: 'Human',
+  environmentUUID: 'abcdefg',
+  timeStamp: '2020-10-26T22:22:51.569Z',
+  roundId: 0
+} 2
+Bid message is:  2
+null 2

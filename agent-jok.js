@@ -47,6 +47,46 @@ const confirmAcceptanceMessages = [
   "Perfect! Just to confirm, I'm giving you "
 ];
 
+const multiMessages = [
+  "The quality of my produce is the best in town. You will not be disappointed.",
+  "All of my goods are from local farms. I can guarantee their quality and freshness."
+];
+
+const eggMessages = [
+  "All my eggs come from farm raised chickens, so I can guarantee their quality.",
+  "I had these eggs delivered to me this morning, so I can guarantee their freshness."
+];
+
+const flourMessages = [
+  "My flour is top notch. You will not be disappointed!",
+  "Only the best of my flour is sold at these times."
+];
+
+const milkMessages = [
+  "The milk I sell comes from a local farm and is delivered to me daily.",
+  "I drink it everyday!"
+];
+
+const sugarMessages = [
+  "The sugar I sell is completely organic and made from sugar cane.",
+  "I can guarantee that my sugar is the best in town."
+];
+
+const chocolateMessages = [
+  "The chocolate is made by my daughter, so you can know for sure that its top quality.",
+  "My wife loves this chocolate, so I buy it for her every year."
+];
+
+const vanillaMessages = [
+  "This vanilla is usually very expensive, but I'm giving it to you for half price.",
+  "This vanilla is very strong and fresh."
+];
+
+const blueberryMessages = [
+  "The blueberrys are fresh from my own garden. I can guarantee that they are fresh.",
+  "Blueberrys are in season right now, and they go perfectly with pancakes."
+];
+
 let negotiationState = {
   "active": false,
   "startTime": null,
@@ -601,6 +641,17 @@ function processMessage(message) {
         }
         return messageResponse;
       }
+      else if(addressee == agentName && interpretation.type == "Haggle"){ // The buyer is informing me that they want to haggle the price
+        let messageResponse = {
+          text: "Reply message is located here",
+          speaker: agentName,
+          role: "seller",
+          addressee: speaker,
+          environmentUUID: interpretation.metadata.environmentUUID,
+          timeStamp: new Date()
+        };
+        return messageResponse;
+      }
       else if (addressee == agentName && interpretation.type == "Information") { // The buyer is just sending me an informational message. Reply politely without attempting to understand.
         logExpression("This is an informational message.", 2);
         let messageResponse = {
@@ -699,12 +750,42 @@ function getSafe(p, o, d) {
 
 function translateBid(bid, confirm) {
   let text = "";
+  let size = 0;
   if(bid.type == 'SellOffer') {
     text = "How about if I sell you";
     Object.keys(bid.quantity).forEach(good => {
-      text += " " + bid.quantity[good] + " " + good;
+      text += " " + bid.quantity[good] + " " + good; 
+      size++; 
     });
-    text += " for " + bid.price.value + " " + bid.price.unit + ".";
+    text += " for " + bid.price.value + " " + bid.price.unit + ". ";
+    if(size > 1){
+      text += selectMessage(multiMessages);
+    }
+    else{
+      Object.keys(bid.quantity).forEach(good => {
+        if(good == "egg"){
+          text += selectMessage(eggMessages); 
+        }
+        else if(good == "flour"){
+          text += selectMessage(flourMessages);
+        }
+        else if(good == "milk"){
+          text += selectMessage(milkMessages); 
+        }
+        else if(good == "sugar"){
+          text += selectMessage(sugarMessages);
+        }
+        else if(good == "chocolate"){
+          text += selectMessage(chocolateMessages);
+        }
+        else if(good == "vanilla"){
+          text += selectMessage(vanillaMessages); 
+        }
+        else if(good == "blueberry"){
+          text += selectMessage(blueberryMessages);
+        }
+      });
+    }
   }
   else if(bid.type == 'Reject') {
     text = selectMessage(rejectionMessages);
